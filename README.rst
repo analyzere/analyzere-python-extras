@@ -1,4 +1,5 @@
-# analyzere-python-viz [travis]
+analyzere-python-viz [travis]
+=============================
 
 An extension to the analyzere python library that faciliates visualization of Analyze Re LayerView objects.
 

@@ -12,11 +12,11 @@ with open(path.join(here, 'requirements', 'install.txt'),
     install_requires = f.read().splitlines()
 
 setup(
-    name='analyzere-viz',
+    name='extras',
     version='0.1.0',
     description='Python extension for the analyzere-python to support visualization',
     long_description=readme,
-    url='https://github.com/analyzere/analyzere-python-viz',
+    url='https://github.com/analyzere/analyzere-python-extras',
     author='Analyze Re',
     author_email='support@analyzere.com',
     license='MIT',
@@ -32,7 +32,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     packages=[
-        'analyzere-viz',
+        'extras',
     ],
     install_requires=install_requires
 )

@@ -1,0 +1,5 @@
+lazy-object-proxy>=1.0,<2
+requests>=2.3,<3
+six>=1.9,<2
+analyzere>=0.5.2,<1
+graphviz>=0.5.2,<1

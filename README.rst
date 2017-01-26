@@ -1,18 +1,19 @@
-analyzere-python-viz [travis]
+analyzere-python-extras [travis]
 =============================
 
-An extension to the analyzere python library that faciliates visualization of Analyze Re LayerView objects.
+An extension to the analyzere python library that facilitates "extras"
+including visualizations of Analyze Re LayerView objects.
 
-.. |travis| image:: https://travis-ci.org/analyzere/analyzere-python-viz.svg?branch=master
+.. |travis| image:: https://travis-ci.org/analyzere/analyzere-python-extras.svg?branch=master
     :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/analyzere/analyzere-python-viz
+    :target: https://travis-ci.org/analyzere/analyzere-python-extras
 
 Installation
 ------------
 
 ::
 
-   pip install analyzere-viz
+   pip install analyzere_extras
 
 Usage
 -----

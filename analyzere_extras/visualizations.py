@@ -279,7 +279,7 @@ class LayerViewDigraph(object):
             self._graph.graph_attr['rankdir'] = rankdir
         if format:
             self._graph.format = format
-        self._filename = '{}{}-{}'.format(
+        self._filename = filename if filename else '{}{}-{}'.format(
             self._lv.id, '-with_terms' if self._with_terms else '',
             rankdir if rankdir else self._rankdir)
 

@@ -1,7 +1,6 @@
 import hashlib
 
 from analyzere import LayerView
-from datetime import datetime
 from graphviz import Digraph
 try:
     from IPython.display import FileLink
@@ -22,16 +21,12 @@ def _counter():
 
 def _format_description(description):
     """Clean the description of a node for diaply in Graphviz"""
-    cleaned = (description.replace(':\\', '|')
-               .replace(':', ' ')
-               .replace('\'', ''))
-    return cleaned.encode('unicode_escape')
+    return description.replace('\'', '').encode('unicode_escape').decode()
 
 
 def _format_DateField(df):
     """Format a Date field, chopping off the time portion"""
-    parsed = datetime.utcfromtimestamp(df.timestamp())
-    return parsed.strftime('%Y-%m-%d')
+    return df.date().isoformat()
 
 
 def _format_MoneyField(mf):
@@ -57,6 +52,10 @@ def _format_layer_terms(layer):
             _format_DateField(layer.expiry_date))
     else:
         terms += ', inf]'
+
+    # FilterLayer
+    if hasattr(layer, 'filters') and len(layer.filters) > 0:
+        terms += '\nfilter={}'.format(layer.filters[0].name)
 
     # CatXL, AggXL, Generic
     if hasattr(layer, 'attachment'):
@@ -128,7 +127,7 @@ class LayerViewDigraph(object):
     visualize Analyze Re LayerView objects.
     """
     def _generate_nodes(self, l, sequence, unique_nodes, edges):
-
+        verbose = False
         if l.type == 'NestedLayer':
             # hash the current node to see if it is unique
             node_hash = hashlib.md5(str(l).encode('utf-8')).hexdigest()
@@ -148,35 +147,36 @@ class LayerViewDigraph(object):
             for source in [self._generate_nodes(s, sequence,
                                                 unique_nodes, edges)
                            for s in l.sources]:
-                if not (source, name) in edges:
-                    self._graph.attr('node', shape='ellipse',
-                                     style='filled', fillcolor='white',
+                if not (source, node_hash) in edges:
+                    self._graph.attr('node', shape='box',
+                                     style='filled',
+                                     fillcolor='white',
                                      color='black')
-                    self._graph.node(name)
-                    self._graph.edge(source, name)
-                    edges.add((source, name))
+                    self._graph.node(node_hash, label=name)
+                    self._graph.edge(source, node_hash)
+                    edges.add((source, node_hash))
         else:
             terms = _format_layer_terms(l) if self._with_terms else ''
+            node_hash = hashlib.md5(str(l).encode('utf-8')).hexdigest()
             name = ('{}'.format(_format_description(l.description))
                     if l.description else
                     '{} ({}) {}'.format(l.type, next(sequence), terms))
             if l.type == 'FilterLayer':
                 self._graph.attr('node', shape='cds')
                 name += '  '
-            self._graph.node(name)
+            self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:
-                ls_name = 'LossSet {}'.format(
+                ls_name = 'LossSet {} {}'.format(
                     _format_description(ls.description),
-                    next(sequence))
-                if not (ls_name, name) in edges:
+                    '({})'.format(next(sequence)) if verbose else '')
+                if not (ls_name, node_hash) in edges:
                     self._graph.attr('node',
-                                     shape='box',
-                                     style='filled',
-                                     color='lightgrey')
+                                     shape='box', color='lightgrey',
+                                     style='filled', fillcolor='lightgrey')
                     self._graph.node(ls_name)
-                    self._graph.edge(ls_name, name)
-                    edges.add((ls_name, name))
-        return name
+                    self._graph.edge(ls_name, node_hash)
+                    edges.add((ls_name, node_hash))
+        return node_hash
 
     def __init__(self, lv, with_terms=True, format='png', rankdir='BT'):
         """Generate a Graphviz.Digraph for the given LayerView
@@ -213,7 +213,7 @@ class LayerViewDigraph(object):
         # defaults for the Digraph, overridden by plot()
         self._graph = Digraph(format=format,
                               graph_attr={'rankdir': rankdir,
-                                          'size': '120,120'})
+                                          'size': '400,400'})
         # now build the "tree" of nodes
         # sequencer for identifying 'ambiguous' nodes
         sequence = _counter()

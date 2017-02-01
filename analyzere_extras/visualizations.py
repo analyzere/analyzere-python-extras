@@ -127,7 +127,6 @@ class LayerViewDigraph(object):
     visualize Analyze Re LayerView objects.
     """
     def _generate_nodes(self, l, sequence, unique_nodes, edges):
-        verbose = False
         if l.type == 'NestedLayer':
             # hash the current node to see if it is unique
             node_hash = hashlib.md5(str(l).encode('utf-8')).hexdigest()
@@ -168,7 +167,7 @@ class LayerViewDigraph(object):
             for ls in l.loss_sets:
                 ls_name = 'LossSet {} {}'.format(
                     _format_description(ls.description),
-                    '({})'.format(next(sequence)) if verbose else '')
+                    '({})'.format(next(sequence)) if self._verbose else '')
                 if not (ls_name, node_hash) in edges:
                     self._graph.attr('node',
                                      shape='box', color='lightgrey',
@@ -178,13 +177,16 @@ class LayerViewDigraph(object):
                     edges.add((ls_name, node_hash))
         return node_hash
 
-    def __init__(self, lv, with_terms=True, format='png', rankdir='BT'):
+    def __init__(self, lv, with_terms=True, verbose=False,
+                 format='png', rankdir='BT'):
         """Generate a Graphviz.Digraph for the given LayerView
 
         Optional parameters that control the visualization:
 
            with_terms   specify that Layer terms are included in each
                         node of the graph.
+
+           verbose      controls if duplicate nodes should be omitted
 
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc.
@@ -204,6 +206,7 @@ class LayerViewDigraph(object):
         self._with_terms = with_terms
         self._rankdir = rankdir
         self._format = format
+        self._verbose = verbose
 
         # build filename with format:
         #    '<lv_id><-with_terms>-<rankdir>.<format>'

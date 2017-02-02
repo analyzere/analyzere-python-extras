@@ -42,31 +42,47 @@ def _format_MoneyField(mf):
 def _format_layer_terms(layer):
     """Get the terms for the given layer for display in Graphviz"""
     terms = ''
-    if hasattr(layer, 'inception_date'):
-        terms += '\n[{}'.format(
-            _format_DateField(layer.inception_date))
-    else:
-        terms += '\n[-inf'
-    if hasattr(layer, 'expiry_date'):
-        terms += ', {}]'.format(
-            _format_DateField(layer.expiry_date))
-    else:
-        terms += ', inf]'
+    if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
+        terms += '\ncoverage=['
+        if hasattr(layer, 'inception_date'):
+            terms += '{}'.format(
+                _format_DateField(layer.inception_date))
+        else:
+            terms += '-inf'
+
+        if hasattr(layer, 'expiry_date'):
+            terms += ', {}]'.format(
+                _format_DateField(layer.expiry_date))
+        else:
+            terms += ', inf]'
 
     # FilterLayer
     if hasattr(layer, 'filters') and len(layer.filters) > 0:
         terms += '\nfilter={}'.format(layer.filters[0].name)
 
+    if hasattr(layer, 'participation'):
+        terms += '\nshare={}%'.format(layer.participation*100)
+
     # CatXL, AggXL, Generic
     if hasattr(layer, 'attachment'):
-        terms += '\natt={}'.format(
+        terms += '\nocc_att={}'.format(
             _format_MoneyField(layer.attachment))
     if hasattr(layer, 'limit'):
-        terms += '\nlim={}'.format(
+        terms += '\nocc_lim={}'.format(
             _format_MoneyField(layer.limit))
+    if hasattr(layer, 'reinstatements') and len(layer.reinstatements) > 0:
+        num_reinstatements = len(layer.reinstatements)
+        terms += '\nreinsts='
+        if num_reinstatements > 4:
+            terms += '{}'.format(num_reinstatements)
+        else:
+            reinstatements = []
+            for r in layer.reinstatements:
+                reinstatements.append('{}/{}'.format(r.premium, r.brokerage))
+            terms += '[{}]'.format(', '.join(reinstatements))
 
     # QuotaShare, AggregateQuotaShare
-    if hasattr(layer, 'event_limit'):
+    if hasattr(layer, 'event_limit') and layer.event_limit is not None:
         terms += '\nevent_lim={}'.format(
             _format_MoneyField(layer.event_limit))
 
@@ -117,6 +133,10 @@ def _format_layer_terms(layer):
         terms += '\npayout={}'.format(
             _format_MoneyField(layer.payout_amount))
 
+    if hasattr(layer, 'premium') and layer.premium is not None:
+        terms += '\npremium={}'.format(
+            _format_MoneyField(layer.premium))
+
     return terms
 
 
@@ -144,16 +164,15 @@ class LayerViewDigraph(object):
             if node_hash not in unique_nodes:
                 unique_nodes[node_hash] = next(sequence)
 
-            terms = _format_layer_terms(l.sink) if self._with_terms else ''
             name = ('Nested {} {}'.format(
                     l.sink.type, _format_description(l.description))
                     if l.description else
                     'Nested {} {}'.format(
                     l.sink.type, _format_description(l.sink.description))
                     if l.sink.description else
-                    'Nested {} ({}) {}'
-                    .format(l.sink.type, unique_nodes[node_hash],
-                            terms))
+                    'Nested {} ({})'
+                    .format(l.sink.type, unique_nodes[node_hash]))
+            name += _format_layer_terms(l.sink) if self._with_terms else ''
             for source in [self._generate_nodes(s, sequence,
                                                 unique_nodes, edges)
                            for s in l.sources]:
@@ -174,6 +193,11 @@ class LayerViewDigraph(object):
             if l.type == 'FilterLayer':
                 self._graph.attr('node', shape='cds')
                 name += '  '
+            else:
+                self._graph.attr('node', shape='box',
+                                 style='filled',
+                                 fillcolor='white',
+                                 color='black')
             self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:
                 ls_name = 'LossSet {} {}'.format(

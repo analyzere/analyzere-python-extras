@@ -177,7 +177,7 @@ class TestLayerViewDigraph:
         lvg = visualizations.LayerViewDigraph(layer_view, with_terms=False)
         assert lvg._with_terms == False
 
-    def test_without_verbose(self, layer_view):
+    def test_with_verbose(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view, verbose=True)
         assert lvg._verbose == True
 
@@ -190,12 +190,12 @@ class TestLayerViewDigraph:
     def test_render(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view)
         fn = lvg.render(view=False)
-        expected_filename = '{}-with_terms-BT.png'.format(layer_view.id)
+        expected_filename = '{}_BT_with_terms.png'.format(layer_view.id)
         assert fn == expected_filename
         os.remove(expected_filename)
 
         fn = ''
-        expected_filename = '{}-with_terms-BT.png'.format(layer_view.id)
+        expected_filename = '{}_BT_with_terms.png'.format(layer_view.id)
         fn = visualizations.LayerViewDigraph(layer_view).render(view=False)
         assert fn == expected_filename
         os.remove(expected_filename)
@@ -204,7 +204,16 @@ class TestLayerViewDigraph:
     def test_render_without_terms(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view, with_terms=False)
         fn = lvg.render(view=False)
-        expected_filename = '{}-BT.png'.format(layer_view.id)
+        expected_filename = '{}_BT.png'.format(layer_view.id)
+        assert fn == expected_filename
+        os.remove(expected_filename)
+        os.remove(os.path.splitext(expected_filename)[0])
+
+    def test_render_verbose(self, layer_view):
+        lvg = visualizations.LayerViewDigraph(layer_view, verbose=True)
+        fn = lvg.render(view=False)
+        expected_filename = '{}_BT_verbose_with_terms.png'.format(
+            layer_view.id)
         assert fn == expected_filename
         os.remove(expected_filename)
         os.remove(os.path.splitext(expected_filename)[0])
@@ -221,7 +230,7 @@ class TestLayerViewDigraph:
     def test_render_format(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view)
         fn = lvg.render(format='pdf', view=False)
-        expected_filename = '{}-with_terms-BT.pdf'.format(layer_view.id)
+        expected_filename = '{}_BT_with_terms.pdf'.format(layer_view.id)
         assert fn == expected_filename
         os.remove(expected_filename)
         os.remove(os.path.splitext(expected_filename)[0])
@@ -230,7 +239,7 @@ class TestLayerViewDigraph:
         lvg = visualizations.LayerViewDigraph(layer_view)
         rankdir = 'TB'
         fn = lvg.render(rankdir=rankdir, view=False)
-        expected_filename = '{}-with_terms-{}.png'.format(layer_view.id,
+        expected_filename = '{}_{}_with_terms.png'.format(layer_view.id,
                                                           rankdir)
         assert fn == expected_filename
         os.remove(expected_filename)

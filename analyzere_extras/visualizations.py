@@ -126,6 +126,17 @@ class LayerViewDigraph(object):
     Using the 'graphviz' python package, this class enables users to
     visualize Analyze Re LayerView objects.
     """
+    def _update_filename(self, filename=None):
+        # build filename with format:
+        #    '<lv_id>_<rankdir>+<verbose><_with_terms>.<format>'
+        self._filename = (filename if filename else
+                          '{}_{}{}{}'.format(self._lv.id,
+                                             self._rankdir,
+                                             '_verbose' if self._verbose
+                                             else '',
+                                             '_with_terms' if self._with_terms
+                                             else ''))
+
     def _generate_nodes(self, l, sequence, unique_nodes, edges):
         if l.type == 'NestedLayer':
             # hash the current node to see if it is unique
@@ -208,10 +219,8 @@ class LayerViewDigraph(object):
         self._format = format
         self._verbose = verbose
 
-        # build filename with format:
-        #    '<lv_id><-with_terms>-<rankdir>.<format>'
-        self._filename = '{}{}-{}'.format(
-            lv.id, '-with_terms' if with_terms else '', rankdir)
+        # initialize the filename
+        self._update_filename()
 
         # defaults for the Digraph, overridden by plot()
         self._graph = Digraph(format=format,
@@ -277,11 +286,12 @@ class LayerViewDigraph(object):
         # check for 'render-time' overrides
         if rankdir:
             self._graph.graph_attr['rankdir'] = rankdir
+            self._rankdir = rankdir
         if format:
             self._graph.format = format
-        self._filename = filename if filename else '{}{}-{}'.format(
-            self._lv.id, '-with_terms' if self._with_terms else '',
-            rankdir if rankdir else self._rankdir)
+
+        # update the filename
+        self._update_filename(filename)
 
         try:
             # protect against use cases when the default rendering tool

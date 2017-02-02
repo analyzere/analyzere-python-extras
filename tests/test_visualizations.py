@@ -118,6 +118,39 @@ def layer_view():
     }
     return convert_to_analyzere_object(content, LayerView)
 
+@pytest.fixture(scope='session')
+def layer_view_attachment_warning():
+    """Unlimited attachments are warnings"""
+    content = {
+        "id": str(uuid.uuid4()),
+        "_type": "CatXL",
+        "attachment": {
+            "currency": "USD",
+            "value": float_info.max,
+        }
+    }
+    return convert_to_analyzere_object(content, LayerView)
+
+@pytest.fixture(scope='session')
+def layer_view_participation_warning():
+    """No participation is a warning"""
+    content = {
+        "_type": "CatXL",
+        "participation": 0.0
+    }
+    return convert_to_analyzere_object(content, LayerView)
+
+@pytest.fixture(scope='session')
+def layer_view_filter_warning():
+    """A FilterLayer with no filters and invert = false is a warning"""
+    content = {
+        "_type": "FilterLayer",
+        "filters": [],
+        "invert": False
+    }
+    return convert_to_analyzere_object(content, LayerView)
+
+
 class TestDescriptionFormatter:
     def test_description_with_colon(self):
         raw = 'auto: FilterLayer USHU'
@@ -161,6 +194,24 @@ class TestMoneyFieldFormatter:
         mf = convert_to_analyzere_object(m)
         expected = 'unlimited'
         assert visualizations._format_MoneyField(mf) == expected
+
+class TestLayerTermsFormatter:
+    def test_layer(self, layer_view):
+        t,w = visualizations._format_layer_terms(layer_view)
+        assert w == False
+
+    def test_attachment_warning(self, layer_view_attachment_warning):
+        t, w = visualizations._format_layer_terms(
+            layer_view_attachment_warning)
+
+    def test_filter_warning(self, layer_view_filter_warning):
+        t, w = visualizations._format_layer_terms(layer_view_filter_warning)
+        assert w == True
+
+    def test_participation_warning(self, layer_view_participation_warning):
+        t, w = visualizations._format_layer_terms(
+            layer_view_participation_warning)
+        assert w == True
 
 
 class TestLayerViewDigraph:

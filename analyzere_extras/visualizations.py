@@ -41,6 +41,7 @@ def _format_MoneyField(mf):
 
 def _format_layer_terms(layer):
     """Get the terms for the given layer for display in Graphviz"""
+    warning = False
     terms = ''
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
         terms += '\ncoverage=['
@@ -57,16 +58,34 @@ def _format_layer_terms(layer):
             terms += ', inf]'
 
     # FilterLayer
-    if hasattr(layer, 'filters') and len(layer.filters) > 0:
-        terms += '\nfilter={}'.format(layer.filters[0].name)
+    if hasattr(layer, 'filters'):
+        terms += '\nfilters='
+        if len(layer.filters) == 0:
+            terms += '(empty)'
+            if not layer.invert:
+                warning = True
+        elif len(layer.filters) < 4:
+            filter_strings = []
+            for f in layer.filters:
+                filter_strings.append("'{}'".format(f.name))
+            terms += '[{}]'.format(', '.join(filter_strings))
+        else:
+            terms += '({} filters)'.format(len(layer.filters))
+
+    if hasattr(layer, 'invert'):
+        terms += '\ninvert={}'.format(layer.invert)
 
     if hasattr(layer, 'participation'):
         terms += '\nshare={}%'.format(layer.participation*100)
+        if layer.participation == 0.0:
+            warning = True
 
     # CatXL, AggXL, Generic
     if hasattr(layer, 'attachment'):
         terms += '\nocc_att={}'.format(
             _format_MoneyField(layer.attachment))
+        warning = warning or layer.attachment.value >= float_info.max
+
     if hasattr(layer, 'limit'):
         terms += '\nocc_lim={}'.format(
             _format_MoneyField(layer.limit))
@@ -137,7 +156,7 @@ def _format_layer_terms(layer):
         terms += '\npremium={}'.format(
             _format_MoneyField(layer.premium))
 
-    return terms
+    return terms, warning
 
 
 class LayerViewDigraph(object):
@@ -157,50 +176,53 @@ class LayerViewDigraph(object):
                                              '_with_terms' if self._with_terms
                                              else ''))
 
-    def _generate_nodes(self, l, sequence, unique_nodes, edges):
-        if l.type == 'NestedLayer':
-            # hash the current node to see if it is unique
-            node_hash = hashlib.md5(str(l).encode('utf-8')).hexdigest()
-            if node_hash not in unique_nodes:
-                unique_nodes[node_hash] = next(sequence)
+    def _generate_nodes(self, l, sequence, unique_nodes, edges,
+                        parent_hash=None, prefix=None):
+        # hash the current node to see if it is unique
+        node_hash = hashlib.md5((str(l)
+                                 + (parent_hash or ''))
+                                .encode('utf-8')).hexdigest()
 
-            name = ('Nested {} {}'.format(
-                    l.sink.type, _format_description(l.description))
-                    if l.description else
-                    'Nested {} {}'.format(
-                    l.sink.type, _format_description(l.sink.description))
-                    if l.sink.description else
-                    'Nested {} ({})'
-                    .format(l.sink.type, unique_nodes[node_hash]))
-            name += _format_layer_terms(l.sink) if self._with_terms else ''
+        if (node_hash not in unique_nodes) or self._verbose:
+            unique_nodes[node_hash] = next(sequence)
+
+        if l.type == 'NestedLayer':
+            prefix = ('"{}"\nNested'.format(_format_description(l.description))
+                      if l.description else
+                      'Nested')
+            sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
+                                             edges, parent_hash=node_hash,
+                                             prefix=prefix)
             for source in [self._generate_nodes(s, sequence,
                                                 unique_nodes, edges)
                            for s in l.sources]:
-                if not (source, node_hash) in edges:
-                    self._graph.attr('node', shape='box',
-                                     style='filled',
-                                     fillcolor='white',
-                                     color='black')
-                    self._graph.node(node_hash, label=name)
-                    self._graph.edge(source, node_hash)
-                    edges.add((source, node_hash))
+                if not (source, sink_hash) in edges:
+                    self._graph.edge(source, sink_hash)
+                    edges.add((source, sink_hash))
+
+            return sink_hash
+
         else:
-            terms = _format_layer_terms(l) if self._with_terms else ''
-            node_hash = hashlib.md5(str(l).encode('utf-8')).hexdigest()
-            name = ('{}'.format(_format_description(l.description))
-                    if l.description else
-                    '{} ({}) {}'.format(l.type, next(sequence), terms))
-            if l.type == 'FilterLayer':
-                self._graph.attr('node', shape='cds')
-                name += '  '
-            else:
-                self._graph.attr('node', shape='box',
-                                 style='filled',
-                                 fillcolor='white',
-                                 color='black')
+            name = prefix + ' ' if prefix else ''
+            name += l.type + ' '
+            name += ('"{}"'.format(_format_description(l.description))
+                     if l.description else
+                     '({})'.format(unique_nodes[node_hash]))
+            terms, warning = _format_layer_terms(l)
+            name += terms if self._with_terms else ''
+
+            self._graph.attr('node', shape='box',
+                             style='filled',
+                             fillcolor='white',
+                             color='black')
+            if warning:
+                self._graph.attr('node', color='red',
+                                 fillcolor='red')
+
             self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:
-                ls_name = 'LossSet {} {}'.format(
+                ls_name = '{} "{}" {}'.format(
+                    ls.type,
                     _format_description(ls.description),
                     '({})'.format(next(sequence)) if self._verbose else '')
                 if not (ls_name, node_hash) in edges:

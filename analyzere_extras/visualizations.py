@@ -237,13 +237,16 @@ class LayerViewDigraph(object):
         self._generate_nodes(lv.layer, sequence, unique_nodes, edges)
 
     @staticmethod
-    def fromId(lv_id, with_terms=True, format='png', rankdir='BT'):
+    def fromId(lv_id, with_terms=True, verbose=False,
+               format='png', rankdir='BT'):
         """Generate a LayerViewDigraph for the given LayerView Id
 
         Optional parameters:
 
            with_terms   specify that Layer terms are included in each
                         node of the graph.
+
+           verbose      controls if duplicate nodes should be omitted
 
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc.
@@ -260,7 +263,7 @@ class LayerViewDigraph(object):
         #       - analyzere.base_url
         #       - analyzere.username
         #       - analyzere.password
-        return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms,
+        return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, verbose,
                                 format=format, rankdir=rankdir)
 
     def render(self, filename=None, view=True, format=None, rankdir=None):

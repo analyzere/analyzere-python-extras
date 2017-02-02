@@ -3,150 +3,154 @@ import os
 import uuid
 
 from analyzere.base_resources import convert_to_analyzere_object, Resource
-from analyzere import utils, LayerView
+from analyzere import LayerView
 from analyzere_extras import visualizations
 from datetime import datetime
 from requests import ConnectionError
 from sys import float_info
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope='session')# noqa
 def layer_view():
     content = {
-        "analysis_profile": {
-            "ref_id": "4e5bccc9-3ad3-4231-8205-1120c4180daf"
+        'analysis_profile': {
+            'ref_id': '4e5bccc9-3ad3-4231-8205-1120c4180daf'
         },
-        "id": str(uuid.uuid4()),
-        "layer": {
-          "_type": "CatXL",
-          "description" : "9x12.4 CatXL",
-          "attachment": {
-            "currency": "USD",
-            "value": 12400000000.0,
+        'id': str(uuid.uuid4()),
+        'layer': {
+          '_type': 'CatXL',
+          'description': '9x12.4 CatXL',
+          'attachment': {
+            'currency': 'USD',
+            'value': 12400000000.0,
             },
-          "franchise": {
-           "currency": "USD",
-            "value": 0.0,
+          'franchise': {
+           'currency': 'USD',
+           'value': 0.0,
+          },
+          'limit': {
+            'currency': 'USD',
+            'value': 9000000000.0,
             },
-          "limit": {
-            "currency": "USD",
-            "value": 9000000000.0,
-            },
-          "loss_sets": [
+          'loss_sets': [
             {
-              "_type": "YELTLossSet",
-              "created": "2017-01-17T01:01:01.966052+00:00",
-              "currency": "USD",
-              "data": {
-                "ref_id": "389e169e-d671-49e5-91ae-3c4a8ed1fcad"
+              '_type': 'YELTLossSet',
+              'created': '2017-01-17T01:01:01.966052+00:00',
+              'currency': 'USD',
+              'data': {
+                'ref_id': '389e169e-d671-49e5-91ae-3c4a8ed1fcad'
               },
-              "data_type": "csv",
-              "description": "Illinois US ST RES",
-              "event_catalogs": [
+              'data_type': 'csv',
+              'description': 'Illinois US ST RES',
+              'event_catalogs': [
                 {
-                  "ref_id": "c508b867-6d6b-4eaf-aad5-294c4debf6de"
+                  'ref_id': 'c508b867-6d6b-4eaf-aad5-294c4debf6de'
                 }
               ],
-              "id": "e60a747e-0556-41ce-9ab9-2102f629f559",
-              "loss_type": "LossGross",
-              "modified": "2017-01-17T01:01:16.237408+00:00",
-              "profile": {
-                "attributes": {
-                  "Country": ["US" ],
-                  "Peril": [ "ST" ],
-                  "Region": ["North America"],
-                  "SubRegion": ["AB","WY"]
+              'id': 'e60a747e-0556-41ce-9ab9-2102f629f559',
+              'loss_type': 'LossGross',
+              'modified': '2017-01-17T01:01:16.237408+00:00',
+              'profile': {
+                'attributes': {
+                  'Country': ['US'],
+                  'Peril': ['ST'],
+                  'Region': ['North America'],
+                  'SubRegion': ['AB', 'WY']
                   },
-                "avg_annual_loss": 555259274.678332,
-                "currency": "USD",
-                "max_loss": 19909099444.0,
-                "min_loss": 0.0,
-                "non_zero_losses": 133674,
-                "num_losses": 133700
+                'avg_annual_loss': 555259274.678332,
+                'currency': 'USD',
+                'max_loss': 19909099444.0,
+                'min_loss': 0.0,
+                'non_zero_losses': 133674,
+                'num_losses': 133700
                 },
-              "start_date": "2017-01-01T00:00:00+00:00",
-              "status": "processing_succeeded",
-              "trial_count": 10000
+              'start_date': '2017-01-01T00:00:00+00:00',
+              'status': 'processing_succeeded',
+              'trial_count': 10000
             },
             {
-              "_type": "YELTLossSet",
-              "created": "2017-01-17T00:20:08.805598+00:00",
-              "currency": "USD",
-              "data": {
-                "ref_id": "c28046b7-5a5d-43a9-9324-7327bbd934de"
+              '_type': 'YELTLossSet',
+              'created': '2017-01-17T00:20:08.805598+00:00',
+              'currency': 'USD',
+              'data': {
+                'ref_id': 'c28046b7-5a5d-43a9-9324-7327bbd934de'
               },
-              "data_type": "csv",
-              "description": "Nova Scotia Canada EQ COM",
-              "event_catalogs": [
+              'data_type': 'csv',
+              'description': 'Nova Scotia Canada EQ COM',
+              'event_catalogs': [
                 {
-                   "ref_id": "c508b867-6d6b-4eaf-aad5-294c4debf6de"
+                   'ref_id': 'c508b867-6d6b-4eaf-aad5-294c4debf6de'
                 }
               ],
-              "id": "8bfc42b8-75ed-450a-b474-4f936b449dc3",
-              "loss_type": "LossGross",
-              "modified": "2017-01-17T00:20:18.231491+00:00",
-              "profile": {
-                "attributes": {
-                  "Country": ["Canada"],
-                  "Peril": ["EQ"],
-                  "Region": ["North America"],
-                  "SubRegion": ["NB", "NS","PE"]
+              'id': '8bfc42b8-75ed-450a-b474-4f936b449dc3',
+              'loss_type': 'LossGross',
+              'modified': '2017-01-17T00:20:18.231491+00:00',
+              'profile': {
+                'attributes': {
+                  'Country': ['Canada'],
+                  'Peril': ['EQ'],
+                  'Region': ['North America'],
+                  'SubRegion': ['NB', 'NS', 'PE']
                 },
-                "avg_annual_loss": 5591.573225,
-                "currency": "USD",
-                "max_loss": 51649446.69,
-                "min_loss": 4.66,
-                "non_zero_losses": 24,
-                "num_losses": 24
+                'avg_annual_loss': 5591.573225,
+                'currency': 'USD',
+                'max_loss': 51649446.69,
+                'min_loss': 4.66,
+                'non_zero_losses': 24,
+                'num_losses': 24
               },
-              "start_date": "2017-01-01T00:00:00+00:00",
-              "status": "processing_succeeded",
-              "trial_count": 10000
+              'start_date': '2017-01-01T00:00:00+00:00',
+              'status': 'processing_succeeded',
+              'trial_count': 10000
             }
           ],
-          "meta_data": {},
-          "nth": 1,
-          "participation": 1.0,
-          "reinstatements": [
+          'meta_data': {},
+          'nth': 1,
+          'participation': 1.0,
+          'reinstatements': [
             {
-              "brokerage": 0.1,
-              "premium": 1.0
+              'brokerage': 0.1,
+              'premium': 1.0
               }
           ]
         },
-        "target_currency": "USD",
-        "ylt_id": "9d61ecf9-9219-57ba-dd2a-fa515732639e"
+        'target_currency': 'USD',
+        'ylt_id': '9d61ecf9-9219-57ba-dd2a-fa515732639e'
     }
     return convert_to_analyzere_object(content, LayerView)
+
 
 @pytest.fixture(scope='session')
 def layer_view_attachment_warning():
     """Unlimited attachments are warnings"""
     content = {
-        "id": str(uuid.uuid4()),
-        "_type": "CatXL",
-        "attachment": {
-            "currency": "USD",
-            "value": float_info.max,
+        'id': str(uuid.uuid4()),
+        '_type': 'CatXL',
+        'attachment': {
+            'currency': 'USD',
+            'value': float_info.max,
         }
     }
     return convert_to_analyzere_object(content, LayerView)
+
 
 @pytest.fixture(scope='session')
 def layer_view_participation_warning():
     """No participation is a warning"""
     content = {
-        "_type": "CatXL",
-        "participation": 0.0
+        '_type': 'CatXL',
+        'participation': 0.0
     }
     return convert_to_analyzere_object(content, LayerView)
+
 
 @pytest.fixture(scope='session')
 def layer_view_filter_warning():
     """A FilterLayer with no filters and invert = false is a warning"""
     content = {
-        "_type": "FilterLayer",
-        "filters": [],
-        "invert": False
+        '_type': 'FilterLayer',
+        'filters': [],
+        'invert': False
     }
     return convert_to_analyzere_object(content, LayerView)
 
@@ -195,10 +199,11 @@ class TestMoneyFieldFormatter:
         expected = 'unlimited'
         assert visualizations._format_MoneyField(mf) == expected
 
+
 class TestLayerTermsFormatter:
     def test_layer(self, layer_view):
-        t,w = visualizations._format_layer_terms(layer_view)
-        assert w == False
+        t, w = visualizations._format_layer_terms(layer_view)
+        assert w is False
 
     def test_attachment_warning(self, layer_view_attachment_warning):
         t, w = visualizations._format_layer_terms(
@@ -206,12 +211,85 @@ class TestLayerTermsFormatter:
 
     def test_filter_warning(self, layer_view_filter_warning):
         t, w = visualizations._format_layer_terms(layer_view_filter_warning)
-        assert w == True
+        assert w is True
 
     def test_participation_warning(self, layer_view_participation_warning):
         t, w = visualizations._format_layer_terms(
             layer_view_participation_warning)
-        assert w == True
+        assert w is True
+
+    def test_inception_only(self):
+        content = {'inception_date': datetime(2017, 1, 1)}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\ncoverage=[2017-01-01, inf]'
+
+    def test_expriry_only(self):
+        content = {'expiry_date': datetime(2018, 1, 1)}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\ncoverage=[-inf, 2018-01-01]'
+
+    def test_unlimited(self):
+        content = {'attachment': {
+                     'currency': 'USD',
+                     'value': float_info.max
+                   }}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nocc_att=unlimited'
+        assert w is True
+
+    def test_no_reinstatements(self):
+        content = {'reinstatements': []}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == ''
+
+    def test_four_reinstatements(self):
+        content = {'reinstatements': [{'brokerage': 0.01, 'premium': 0.1},
+                                      {'brokerage': 0.02, 'premium': 0.2},
+                                      {'brokerage': 0.03, 'premium': 0.3},
+                                      {'brokerage': 0.04, 'premium': 0.4}]
+                   }
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nreinsts=[0.1/0.01, 0.2/0.02, 0.3/0.03, 0.4/0.04]'
+
+    def test_many_reinstatements(self):
+        content = {'reinstatements': [{'brokerage': 0.01, 'premium': 0.1},
+                                      {'brokerage': 0.02, 'premium': 0.2},
+                                      {'brokerage': 0.03, 'premium': 0.3},
+                                      {'brokerage': 0.04, 'premium': 0.4},
+                                      {'brokerage': 0.05, 'premium': 0.5}]
+                   }
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nreinsts=5'
+
+    def test_no_filters(self):
+        content = {'filters': []}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nfilters=(empty)'
+
+    def test_max_filters(self):
+        content = {'filters': [{'name': 'One'},
+                               {'name': 'Two'},
+                               {'name': 'Three'}]}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nfilters=[\'One\', \'Two\', \'Three\']'
+
+    def test_many_filters(self):
+        content = {'filters': [{'name': 'One'},
+                               {'name': 'Two'},
+                               {'name': 'Three'},
+                               {'name': 'Four'},
+                               {'name': 'Five'}]}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nfilters=(5 filters)'
 
 
 class TestLayerViewDigraph:
@@ -219,18 +297,18 @@ class TestLayerViewDigraph:
         m = {'something': 'here'}
         lv = convert_to_analyzere_object(m, Resource)
         with pytest.raises(ValueError):
-            lvg = visualizations.LayerViewDigraph(lv)
+            visualizations.LayerViewDigraph(lv)
 
     def test_basic(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view)
+        visualizations.LayerViewDigraph(layer_view)
 
     def test_without_terms(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view, with_terms=False)
-        assert lvg._with_terms == False
+        assert lvg._with_terms is False
 
     def test_with_verbose(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view, verbose=True)
-        assert lvg._verbose == True
+        assert lvg._verbose is True
 
     def test_format(self, layer_view):
         lvg = visualizations.LayerViewDigraph(layer_view, format='pdf')
@@ -305,4 +383,4 @@ class TestLayerViewDigraph:
         """
         lvid = 'ee3f8420-c583-4dd4-9f9d-8ade29b0d82f'
         with pytest.raises(ConnectionError):
-            lvg = visualizations.LayerViewDigraph.fromId(lvid)
+            visualizations.LayerViewDigraph.fromId(lvid)

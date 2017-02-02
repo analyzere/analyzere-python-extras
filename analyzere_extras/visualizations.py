@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 
 from analyzere import LayerView
 from graphviz import Digraph
@@ -9,14 +10,6 @@ except ImportError:
     _in_notebook = False
 
 from sys import float_info
-
-
-def _counter():
-    """Simple counter for generating unique indexes in a graph"""
-    i = 0
-    while True:
-        i += 1
-        yield i
 
 
 def _format_description(description):
@@ -44,26 +37,19 @@ def _format_layer_terms(layer):
     warning = False
     terms = ''
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
-        terms += '\ncoverage=['
-        if hasattr(layer, 'inception_date'):
-            terms += '{}'.format(
-                _format_DateField(layer.inception_date))
-        else:
-            terms += '-inf'
-
-        if hasattr(layer, 'expiry_date'):
-            terms += ', {}]'.format(
-                _format_DateField(layer.expiry_date))
-        else:
-            terms += ', inf]'
+        coverage = []
+        coverage.append('{}'.format(_format_DateField(layer.inception_date))
+                        if hasattr(layer, 'inception_date') else '-inf')
+        coverage.append('{}'.format(_format_DateField(layer.expiry_date))
+                        if hasattr(layer, 'expiry_date') else
+                        'inf')
+        terms += '\ncoverage=[{}]'.format(', '.join(coverage))
 
     # FilterLayer
     if hasattr(layer, 'filters'):
         terms += '\nfilters='
         if len(layer.filters) == 0:
             terms += '(empty)'
-            if not layer.invert:
-                warning = True
         elif len(layer.filters) < 4:
             filter_strings = []
             for f in layer.filters:
@@ -74,6 +60,8 @@ def _format_layer_terms(layer):
 
     if hasattr(layer, 'invert'):
         terms += '\ninvert={}'.format(layer.invert)
+        if not layer.invert and len(layer.filters) == 0:
+            warning = True
 
     if hasattr(layer, 'participation'):
         terms += '\nshare={}%'.format(layer.participation*100)
@@ -274,7 +262,7 @@ class LayerViewDigraph(object):
                                           'size': '400,400'})
         # now build the "tree" of nodes
         # sequencer for identifying 'ambiguous' nodes
-        sequence = _counter()
+        sequence = itertools.count()
         # hash map of unique nodes (prevents duplication)
         unique_nodes = {}
         # set of unique edges (prevents duplicates)

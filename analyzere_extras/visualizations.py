@@ -24,7 +24,6 @@ def _format_DateField(df):
 
 def _format_MoneyField(mf):
     """Format a MoneyField to '<unlimited|value> CCY' """
-    formatted = 'n/a'
     if mf.value == float_info.max:
         formatted = 'unlimited'
     else:

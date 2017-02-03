@@ -1,5 +1,4 @@
 import pytest
-import os
 import uuid
 
 from analyzere.base_resources import convert_to_analyzere_object, Resource
@@ -8,9 +7,10 @@ from analyzere_extras import visualizations
 from datetime import datetime
 from requests import ConnectionError
 from sys import float_info
+from mock import Mock
 
 
-@pytest.fixture(scope='session')# noqa
+@pytest.fixture(scope='session')
 def layer_view():
     content = {
         'analysis_profile': {
@@ -162,8 +162,8 @@ class TestDescriptionFormatter:
         assert visualizations._format_description(raw) == expected
 
     def test_description_with_windows_file_path(self):
-        raw = 'Layer 2 : Z:\\losses\\alpha.csv'
-        expected = 'Layer 2 : Z:\\\\losses\\\\alpha.csv'
+        raw = r'Layer 2 : Z:\losses\alpha.csv'
+        expected = r'Layer 2 : Z:\\losses\\alpha.csv'
         actual = visualizations._format_description(raw)
         assert (actual == expected)
 
@@ -292,7 +292,46 @@ class TestLayerTermsFormatter:
         assert terms == '\nfilters=(5 filters)'
 
 
+@pytest.fixture()
+def default_LayerViewDigraph_args():
+    default_args = {'_with_terms': True,
+                    '_rankdir': 'BT',
+                    '_format': 'png',
+                    '_verbose': False}
+    return default_args
+
+
+@pytest.mark.usefixtures('default_LayerViewDigraph_args')
 class TestLayerViewDigraph:
+
+    def _get_filename(self, lv_id, **overrides):
+
+        # merge the default arguments with the overrides
+        args = default_LayerViewDigraph_args()
+        args.update(overrides)
+        filename = (args['_filename'] if '_filename' in args else
+                    '{}_{}{}{}'.format(lv_id,
+                                       args['_rankdir'],
+                                       '_verbose' if args['_verbose']
+                                       else '',
+                                       '_with_terms' if args['_with_terms']
+                                       else ''))
+        return filename
+
+    def _validate_args(self, lvg, **overrides):
+        # merge the default arguments with the overrides
+        args = default_LayerViewDigraph_args()
+        args.update(overrides)
+
+        # now that we have merged the defaults with the overrides, we will
+        # compute the filename
+        args['_filename'] = self._get_filename(lvg, **args)
+
+        assert lvg._with_terms is args['_with_terms']
+        assert lvg._rankdir == args['_rankdir']
+        assert lvg._format == args['_format']
+        assert lvg._verbose is args['_verbose']
+
     def test_invalid_lv(self):
         m = {'something': 'here'}
         lv = convert_to_analyzere_object(m, Resource)
@@ -300,79 +339,194 @@ class TestLayerViewDigraph:
             visualizations.LayerViewDigraph(lv)
 
     def test_basic(self, layer_view):
-        visualizations.LayerViewDigraph(layer_view)
+        lvg = visualizations.LayerViewDigraph(layer_view)
+        assert lvg._lv == layer_view
+        # assert default arguments used for graph construction
+        self._validate_args(lvg)
+
+        expected_filename = self._get_filename(layer_view.id)
+        assert lvg._filename == expected_filename
 
     def test_without_terms(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view, with_terms=False)
-        assert lvg._with_terms is False
+        override = False
+        lvg = visualizations.LayerViewDigraph(layer_view, with_terms=override)
+        assert lvg._lv == layer_view
+        # validate 'with_terms' override used for graph construction
+        self._validate_args(lvg, _with_terms=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _with_terms=override)
+        assert lvg._filename == expected_filename
 
     def test_with_verbose(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view, verbose=True)
-        assert lvg._verbose is True
+        override = True
+        lvg = visualizations.LayerViewDigraph(layer_view, verbose=override)
+        assert lvg._lv == layer_view
+        # verify 'verbose' override used for graph construction
+        self._validate_args(lvg, _verbose=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _verbose=override)
+        assert lvg._filename == expected_filename
 
     def test_format(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view, format='pdf')
-        assert lvg._graph.format == 'pdf'
-        lvg = visualizations.LayerViewDigraph(layer_view, format='svg')
-        assert lvg._graph.format == 'svg'
+        override = 'pdf'
+        lvg = visualizations.LayerViewDigraph(layer_view, format=override)
+        assert lvg._lv == layer_view
+        # verify 'format' override used for graph construction
+        self._validate_args(lvg, _format=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _format=override)
+        assert lvg._filename == expected_filename
 
     def test_render(self, layer_view):
+        """Test that the expected (default) 'filename' parameter is passed to
+        the underlying graphviz.render() method
+        """
         lvg = visualizations.LayerViewDigraph(layer_view)
-        fn = lvg.render(view=False)
-        expected_filename = '{}_BT_with_terms.png'.format(layer_view.id)
-        assert fn == expected_filename
-        os.remove(expected_filename)
+        assert lvg._lv == layer_view
+        # verify default arguments used for graph construction
+        self._validate_args(lvg)
 
-        fn = ''
-        expected_filename = '{}_BT_with_terms.png'.format(layer_view.id)
-        fn = visualizations.LayerViewDigraph(layer_view).render(view=False)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        expected_filename = self._get_filename(layer_view.id)
+        assert lvg._filename == expected_filename
+
+        # mock out the underlying graphviz Digraph
+        lvg._graph = Mock()
+
+        lvg.render()
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
 
     def test_render_without_terms(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view, with_terms=False)
-        fn = lvg.render(view=False)
-        expected_filename = '{}_BT.png'.format(layer_view.id)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        """Test that the expected (default) 'filename' parameter is passed to
+        the underlying graphviz.render() method
+        """
+        override = False
+        lvg = visualizations.LayerViewDigraph(layer_view, with_terms=override)
+        assert lvg._lv == layer_view
+        # verify 'with_terms' override used for graph construction
+        self._validate_args(lvg, _with_terms=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _with_terms=override)
+        assert lvg._filename == expected_filename
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+
+        lvg.render()
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
 
     def test_render_verbose(self, layer_view):
-        lvg = visualizations.LayerViewDigraph(layer_view, verbose=True)
-        fn = lvg.render(view=False)
-        expected_filename = '{}_BT_verbose_with_terms.png'.format(
-            layer_view.id)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        """Test that the 'verbose' parameter affects the filename
+        that is is passed to the underlying graphviz.render() method
+        """
+        override = True
+        lvg = visualizations.LayerViewDigraph(layer_view, verbose=override)
+        assert lvg._lv == layer_view
+        # verify 'verbose' override used for graph construction
+        self._validate_args(lvg, _verbose=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _verbose=override)
+        assert lvg._filename == expected_filename
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+
+        lvg.render()
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
+
+    def test_render_without_view(self, layer_view):
+        """Test that the 'verbose' parameter affects the filename
+        that is is passed to the underlying graphviz.render() method
+        """
+        lvg = visualizations.LayerViewDigraph(layer_view)
+        assert lvg._lv == layer_view
+        # verify default arguments used for graph construction
+        self._validate_args(lvg)
+
+        expected_filename = self._get_filename(layer_view.id)
+        assert lvg._filename == expected_filename
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+
+        lvg.render(view=False)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
+        assert lvg._filename == expected_filename
 
     def test_render_filename(self, layer_view):
+        """Test that the 'filename' parameter is passed to the underlying
+        graphviz.render() method
+        """
+        expected_filename = '{}_BT_with_terms'.format(layer_view.id)
+
         lvg = visualizations.LayerViewDigraph(layer_view)
+        assert lvg._lv == layer_view
+        # verify default arguments used for graph construction
+        self._validate_args(lvg)
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+
         filename = 'my_graph'
-        fn = lvg.render(filename=filename, view=False)
-        expected_filename = '{}.png'.format(filename)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        expected_filename = self._get_filename(layer_view.id,
+                                               _filename=filename)
+
+        lvg.render(filename=filename)
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
 
     def test_render_format(self, layer_view):
+        """Test that the 'format' parameter is passed to the underlying
+        graphviz.render() method.
+        """
         lvg = visualizations.LayerViewDigraph(layer_view)
-        fn = lvg.render(format='pdf', view=False)
-        expected_filename = '{}_BT_with_terms.pdf'.format(layer_view.id)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        assert lvg._lv == layer_view
+        # verify default arguments used for graph construction
+        self._validate_args(lvg)
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+
+        lvg.render(format='pdf')
+        expected_filename = self._get_filename(layer_view.id)
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
+        assert lvg._format == 'pdf'
 
     def test_render_rankdir(self, layer_view):
+        """Test that the 'rankdir' parameter is passed to the underlying
+        graphviz.render() method and that it also affects the 'filename'
+        that is passed.
+        """
         lvg = visualizations.LayerViewDigraph(layer_view)
+        assert lvg._lv == layer_view
+        # verify default arguments used for graph construction
+        self._validate_args(lvg)
+
+        # mock out the underlying graphviz Digraph and ensure the appropriate
+        # values are passed to its render() method
+        lvg._graph = Mock()
+        lvg._graph.graph_attr = {}
+
         rankdir = 'TB'
-        fn = lvg.render(rankdir=rankdir, view=False)
-        expected_filename = '{}_{}_with_terms.png'.format(layer_view.id,
-                                                          rankdir)
-        assert fn == expected_filename
-        os.remove(expected_filename)
-        os.remove(os.path.splitext(expected_filename)[0])
+        expected_filename = self._get_filename(layer_view.id,
+                                               _rankdir=rankdir)
+        lvg.render(rankdir=rankdir)
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        assert lvg._filename == expected_filename
+        assert lvg._graph.graph_attr['rankdir'] == 'TB'
 
     def test_fromId(self):
         """Requests by Id don't work unless you have defined the following

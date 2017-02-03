@@ -217,9 +217,9 @@ class LayerViewDigraph(object):
                     self._graph.attr('node',
                                      shape='box', color='lightgrey',
                                      style='filled', fillcolor='lightgrey')
-                    self._graph.node(ls_name)
-                    self._graph.edge(ls_name, node_hash)
-                    edges.add((ls_name, node_hash))
+                    self._graph.node(ls.id, label=ls_name)
+                    self._graph.edge(ls.id, node_hash)
+                    edges.add((ls.id, node_hash))
         return node_hash
 
     def __init__(self, lv, with_terms=True, verbose=False,
@@ -326,6 +326,7 @@ class LayerViewDigraph(object):
             self._rankdir = rankdir
         if format:
             self._graph.format = format
+            self._format = format
 
         # update the filename
         self._update_filename(filename)

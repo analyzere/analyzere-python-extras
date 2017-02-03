@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+from collections import OrderedDict
 
 from analyzere import LayerView
 from graphviz import Digraph
@@ -31,120 +32,143 @@ def _format_MoneyField(mf):
     return formatted
 
 
+def _format_filters(filters):
+    if len(filters) == 0:
+        filters_value = '(empty)'
+    elif len(filters) < 4:
+        filter_strings = []
+        for f in filters:
+            filter_strings.append("'{}'".format(f.name))
+        filters_value = '[{}]'.format(', '.join(filter_strings))
+    else:
+        filters_value = '({} filters)'.format(len(filters))
+    return filters_value
+
+
+def _format_reinstatements(reinstatements):
+    num_reinstatements = len(reinstatements)
+
+    if num_reinstatements > 4:
+        reinsts_value = '{}'.format(num_reinstatements)
+    else:
+        reinstatements = ['{}/{}'.format(r.premium, r.brokerage)
+                          for r in reinstatements]
+        reinsts_value = '[{}]'.format(', '.join(reinstatements))
+    return reinsts_value
+
+
+def _format_coverage(layer):
+    coverage = ['{}'.format(_format_DateField(layer.inception_date))
+                if hasattr(layer, 'inception_date') else '-inf',
+                '{}'.format(_format_DateField(layer.expiry_date))
+                if hasattr(layer, 'expiry_date') else 'inf']
+    return '[{}]'.format(', '.join(coverage))
+
+
+class FormattingHelper:
+    def __init__(self, layer, terms):
+        self.layer = layer
+        self.terms = terms
+
+    def append(self, required_attr, attr_formatted=None,
+               formatter=lambda x: str(x),
+               condition=lambda: True,
+               warning=lambda: False):
+        if not attr_formatted:
+            attr_formatted = required_attr
+
+        if not hasattr(self.layer, required_attr) or not condition():
+            return False
+
+        attr = getattr(self.layer, required_attr)
+        self.terms[attr_formatted] = formatter(attr)
+        return warning()
+
+
 def _format_layer_terms(layer):
     """Get the terms for the given layer for display in Graphviz"""
     warning = False
-    terms = ''
+
+    terms = OrderedDict()
+
+    formatter = FormattingHelper(layer, terms)
+
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
-        coverage = []
-        coverage.append('{}'.format(_format_DateField(layer.inception_date))
-                        if hasattr(layer, 'inception_date') else '-inf')
-        coverage.append('{}'.format(_format_DateField(layer.expiry_date))
-                        if hasattr(layer, 'expiry_date') else
-                        'inf')
-        terms += '\ncoverage=[{}]'.format(', '.join(coverage))
+        terms['coverage'] = _format_coverage(layer)
 
     # FilterLayer
-    if hasattr(layer, 'filters'):
-        terms += '\nfilters='
-        if len(layer.filters) == 0:
-            terms += '(empty)'
-        elif len(layer.filters) < 4:
-            filter_strings = []
-            for f in layer.filters:
-                filter_strings.append("'{}'".format(f.name))
-            terms += '[{}]'.format(', '.join(filter_strings))
-        else:
-            terms += '({} filters)'.format(len(layer.filters))
+    formatter.append('filters', formatter=_format_filters)
 
-    if hasattr(layer, 'invert'):
-        terms += '\ninvert={}'.format(layer.invert)
-        if not layer.invert and len(layer.filters) == 0:
-            warning = True
+    formatter.append('limit', attr_formatted='occ_lim',
+                     formatter=_format_MoneyField)
 
-    if hasattr(layer, 'participation'):
-        terms += '\nshare={}%'.format(layer.participation*100)
-        if layer.participation == 0.0:
-            warning = True
+    warning |= formatter.append('invert',
+                                warning=lambda: (not layer.invert
+                                                 and len(layer.filters) == 0))
+
+    warning |= formatter.append('participation', attr_formatted='share',
+                                formatter=lambda x: '{}%'.format(x*100),
+                                warning=lambda: layer.participation == 0.0)
 
     # CatXL, AggXL, Generic
-    if hasattr(layer, 'attachment'):
-        terms += '\nocc_att={}'.format(
-            _format_MoneyField(layer.attachment))
-        warning = warning or layer.attachment.value >= float_info.max
+    warning |= formatter.append('attachment', attr_formatted='occ_att',
+                                formatter=_format_MoneyField,
+                                warning=lambda: (layer.attachment.value
+                                                 >= float_info.max))
 
-    if hasattr(layer, 'limit'):
-        terms += '\nocc_lim={}'.format(
-            _format_MoneyField(layer.limit))
-    if hasattr(layer, 'reinstatements') and len(layer.reinstatements) > 0:
-        num_reinstatements = len(layer.reinstatements)
-        terms += '\nreinsts='
-        if num_reinstatements > 4:
-            terms += '{}'.format(num_reinstatements)
-        else:
-            reinstatements = []
-            for r in layer.reinstatements:
-                reinstatements.append('{}/{}'.format(r.premium, r.brokerage))
-            terms += '[{}]'.format(', '.join(reinstatements))
+    formatter.append(required_attr='limit', attr_formatted='occ_lim',
+                     formatter=_format_MoneyField)
+
+    formatter.append('reinstatements', attr_formatted='reinsts',
+                     formatter=_format_reinstatements,
+                     condition=lambda: layer.reinstatements)
 
     # QuotaShare, AggregateQuotaShare
-    if hasattr(layer, 'event_limit') and layer.event_limit is not None:
-        terms += '\nevent_lim={}'.format(
-            _format_MoneyField(layer.event_limit))
+    formatter.append('event_limit', attr_formatted='event_lim',
+                     formatter=_format_MoneyField)
 
     # AggXL, AggregateQuotaShare
-    if hasattr(layer, 'aggregate_attachment'):
-        terms += '\nagg_att={}'.format(
-            _format_MoneyField(layer.aggregate_attachment))
-        warning = warning or layer.aggregate_attachment.value >= float_info.max
-    if hasattr(layer, 'aggregate_limit'):
-        terms += '\nagg_lim={}'.format(
-            _format_MoneyField(layer.aggregate_limit))
+    warning |= (
+        formatter.append('aggregate_attachment',
+                         attr_formatted='agg_att',
+                         formatter=_format_MoneyField,
+                         warning=lambda: (layer.aggregate_attachment.value
+                                          >= float_info.max))
+    )
+    formatter.append('aggregate_limit', attr_formatted='agg_lim',
+                     formatter=_format_MoneyField)
 
     # AggregateQuotaShare
-    if hasattr(layer, 'aggregate_period'):
-        if layer.aggregate_period > 0.0:
-            terms += '\nagg_period={}'.format(layer.aggregate_period)
-    if hasattr(layer, 'aggregate_reset'):
-        if layer.aggregate_reset > 1:
-            terms += '\nagg_reset={}'.format(layer.aggregate_reset)
+    formatter.append('aggregate_period', attr_formatted='agg_period')
+
+    formatter.append('aggregate_reset', attr_formatted='agg_reset',
+                     condition=lambda: layer.aggregate_reset > 1)
 
     # SurplusShare
-    if hasattr(layer, 'sums_insured'):
-        terms += '\nsums_insured={}'.format(
-            _format_MoneyField(layer.sums_insured))
-    if hasattr(layer, 'retained_line'):
-        terms += '\nretained_line={}'.format(
-            _format_MoneyField(layer.retained_line))
-    if hasattr(layer, 'number_of_lines'):
-        if layer.number_of_lines:
-            terms += '\nnumber_of_lines={}'.format(layer.number_of_lines)
+    formatter.append('sums_insured', formatter=_format_MoneyField)
+    formatter.append('retained_line', formatter=_format_MoneyField)
+
+    formatter.append('number_of_lines')
 
     # IndustryLossWarranty
-    if hasattr(layer, 'trigger'):
-        terms += '\ntrigger={}'.format(
-            _format_MoneyField(layer.trigger))
-    if hasattr(layer, 'payout'):
-        terms += '\npayout={}'.format(
-            _format_MoneyField(layer.payout))
+    formatter.append('trigger', formatter=_format_MoneyField)
+    formatter.append('payout', formatter=_format_MoneyField)
 
     # CatXL, IndustryLossWarranty
-    if hasattr(layer, 'nth'):
-        terms += '\nnth={}'.format(layer.nth)
+    formatter.append('nth')
 
     # NoClaimsBonus
-    if hasattr(layer, 'payout_date'):
-        terms += '\npayout_date={}'.format(
-            _format_DateField(layer.payout_date))
-    if hasattr(layer, 'payout_amount'):
-        terms += '\npayout={}'.format(
-            _format_MoneyField(layer.payout_amount))
+    formatter.append('payout_date', formatter=_format_DateField)
+    formatter.append('payout_amount', attr_formatted='payout',
+                     formatter=_format_MoneyField)
 
-    if hasattr(layer, 'premium') and layer.premium is not None:
-        terms += '\npremium={}'.format(
-            _format_MoneyField(layer.premium))
+    formatter.append('premium', formatter=_format_MoneyField,
+                     condition=lambda: layer.premium is not None)
 
-    return terms, warning
+    leading_text = '\n' if terms else ''
+    return (leading_text
+            + '\n'.join(['{}={}'.format(key, value)
+                         for key, value in terms.items()])), warning
 
 
 class LayerViewDigraph(object):

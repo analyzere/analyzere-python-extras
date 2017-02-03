@@ -69,6 +69,7 @@ class FormattingHelper:
     def __init__(self, layer, terms):
         self.layer = layer
         self.terms = terms
+        self.warning = False
 
     def append(self, required_attr, attr_formatted=None,
                formatter=lambda x: str(x),
@@ -78,17 +79,15 @@ class FormattingHelper:
             attr_formatted = required_attr
 
         if not hasattr(self.layer, required_attr) or not condition():
-            return False
+            return
 
         attr = getattr(self.layer, required_attr)
         self.terms[attr_formatted] = formatter(attr)
-        return warning()
+        self.warning |= warning()
 
 
 def _format_layer_terms(layer):
     """Get the terms for the given layer for display in Graphviz"""
-    warning = False
-
     terms = OrderedDict()
 
     formatter = FormattingHelper(layer, terms)
@@ -102,19 +101,19 @@ def _format_layer_terms(layer):
     formatter.append('limit', attr_formatted='occ_lim',
                      formatter=_format_MoneyField)
 
-    warning |= formatter.append('invert',
-                                warning=lambda: (not layer.invert
-                                                 and len(layer.filters) == 0))
+    formatter.append('invert',
+                     warning=lambda: (not layer.invert
+                                      and len(layer.filters) == 0))
 
-    warning |= formatter.append('participation', attr_formatted='share',
-                                formatter=lambda x: '{}%'.format(x*100),
-                                warning=lambda: layer.participation == 0.0)
+    formatter.append('participation', attr_formatted='share',
+                     formatter=lambda x: '{}%'.format(x*100),
+                     warning=lambda: layer.participation == 0.0)
 
     # CatXL, AggXL, Generic
-    warning |= formatter.append('attachment', attr_formatted='occ_att',
-                                formatter=_format_MoneyField,
-                                warning=lambda: (layer.attachment.value
-                                                 >= float_info.max))
+    formatter.append('attachment', attr_formatted='occ_att',
+                     formatter=_format_MoneyField,
+                     warning=lambda: (layer.attachment.value
+                                      >= float_info.max))
 
     formatter.append(required_attr='limit', attr_formatted='occ_lim',
                      formatter=_format_MoneyField)
@@ -128,26 +127,22 @@ def _format_layer_terms(layer):
                      formatter=_format_MoneyField)
 
     # AggXL, AggregateQuotaShare
-    warning |= (
-        formatter.append('aggregate_attachment',
-                         attr_formatted='agg_att',
-                         formatter=_format_MoneyField,
-                         warning=lambda: (layer.aggregate_attachment.value
-                                          >= float_info.max))
-    )
+    formatter.append('aggregate_attachment',
+                     attr_formatted='agg_att',
+                     formatter=_format_MoneyField,
+                     warning=lambda: (layer.aggregate_attachment.value
+                                      >= float_info.max))
     formatter.append('aggregate_limit', attr_formatted='agg_lim',
                      formatter=_format_MoneyField)
 
     # AggregateQuotaShare
     formatter.append('aggregate_period', attr_formatted='agg_period')
-
     formatter.append('aggregate_reset', attr_formatted='agg_reset',
                      condition=lambda: layer.aggregate_reset > 1)
 
     # SurplusShare
     formatter.append('sums_insured', formatter=_format_MoneyField)
     formatter.append('retained_line', formatter=_format_MoneyField)
-
     formatter.append('number_of_lines')
 
     # IndustryLossWarranty
@@ -168,7 +163,7 @@ def _format_layer_terms(layer):
     leading_text = '\n' if terms else ''
     return (leading_text
             + '\n'.join(['{}={}'.format(key, value)
-                         for key, value in terms.items()])), warning
+                         for key, value in terms.items()])), formatter.warning
 
 
 class LayerViewDigraph(object):

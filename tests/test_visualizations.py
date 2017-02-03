@@ -218,19 +218,26 @@ class TestLayerTermsFormatter:
             layer_view_participation_warning)
         assert w is True
 
-    def test_inception_only(self):
+    def test_coverage_inception_only(self):
         content = {'inception_date': datetime(2017, 1, 1)}
         layer = convert_to_analyzere_object(content, LayerView)
         terms, w = visualizations._format_layer_terms(layer)
         assert terms == '\ncoverage=[2017-01-01, inf]'
 
-    def test_expriry_only(self):
+    def test_coverage_expriry_only(self):
         content = {'expiry_date': datetime(2018, 1, 1)}
         layer = convert_to_analyzere_object(content, LayerView)
         terms, w = visualizations._format_layer_terms(layer)
         assert terms == '\ncoverage=[-inf, 2018-01-01]'
 
-    def test_unlimited(self):
+    def test_full_coverage(self):
+        content = {'inception_date': datetime(2017, 1, 1),
+                   'expiry_date': datetime(2018, 1, 1)}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\ncoverage=[2017-01-01, 2018-01-01]'
+
+    def test_unlimited_attachment(self):
         content = {'attachment': {
                      'currency': 'USD',
                      'value': float_info.max
@@ -239,6 +246,26 @@ class TestLayerTermsFormatter:
         terms, w = visualizations._format_layer_terms(layer)
         assert terms == '\nocc_att=unlimited'
         assert w is True
+
+    def test_unlimited_aggregate_attachment(self):
+        content = {'aggregate_attachment': {
+                     'currency': 'USD',
+                     'value': float_info.max
+                   }}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nagg_att=unlimited'
+        assert w is True
+
+    def test_unlimited_limit(self):
+        content = {'limit': {
+                     'currency': 'USD',
+                     'value': float_info.max
+                   }}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\nocc_lim=unlimited'
+        assert w is False
 
     def test_no_reinstatements(self):
         content = {'reinstatements': []}
@@ -290,6 +317,24 @@ class TestLayerTermsFormatter:
         layer = convert_to_analyzere_object(content, LayerView)
         terms, w = visualizations._format_layer_terms(layer)
         assert terms == '\nfilters=(5 filters)'
+
+    def test_null_premium(self):
+        content = {'premium': None}
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == ''
+
+    def test_premium(self):
+        content = {'premium': {
+                     'value': 12500000.0,
+                     'currency': "USD",
+                     'value_date': None,
+                     'rate': None,
+                     'rate_currency': None}
+                   }
+        layer = convert_to_analyzere_object(content, LayerView)
+        terms, w = visualizations._format_layer_terms(layer)
+        assert terms == '\npremium=12,500,000 USD'
 
 
 @pytest.fixture()

@@ -13,7 +13,7 @@ from sys import float_info
 
 
 def _format_description(description):
-    """Clean the description of a node for diaply in Graphviz"""
+    """Clean the description of a node for display in Graphviz"""
     return description.replace('\'', '').encode('unicode_escape').decode()
 
 
@@ -97,6 +97,7 @@ def _format_layer_terms(layer):
     if hasattr(layer, 'aggregate_attachment'):
         terms += '\nagg_att={}'.format(
             _format_MoneyField(layer.aggregate_attachment))
+        warning = warning or layer.aggregate_attachment.value >= float_info.max
     if hasattr(layer, 'aggregate_limit'):
         terms += '\nagg_lim={}'.format(
             _format_MoneyField(layer.aggregate_limit))

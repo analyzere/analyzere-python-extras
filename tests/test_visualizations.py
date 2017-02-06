@@ -23,10 +23,10 @@ def layer_view():
           'attachment': {
             'currency': 'USD',
             'value': 12400000000.0,
-            },
+          },
           'franchise': {
-           'currency': 'USD',
-           'value': 0.0,
+            'currency': 'USD',
+            'value': 0.0,
           },
           'limit': {
             'currency': 'USD',
@@ -472,7 +472,7 @@ def default_LayerViewDigraph_args():
     default_args = {'_with_terms': True,
                     '_rankdir': 'BT',
                     '_format': 'png',
-                    '_verbose': False,
+                    '_compact': True,
                     '_warnings': True}
     return default_args
 
@@ -488,8 +488,8 @@ class TestLayerViewDigraph:
         filename = (args['_filename'] if '_filename' in args else
                     '{}_{}{}{}'.format(lv_id,
                                        args['_rankdir'],
-                                       '_verbose' if args['_verbose']
-                                       else '',
+                                       '' if args['_compact']
+                                       else '_not_compace',
                                        '_with_terms' if args['_with_terms']
                                        else ''))
         return filename
@@ -506,7 +506,7 @@ class TestLayerViewDigraph:
         assert lvg._with_terms is args['_with_terms']
         assert lvg._rankdir == args['_rankdir']
         assert lvg._format == args['_format']
-        assert lvg._verbose is args['_verbose']
+        assert lvg._compact is args['_compact']
         assert lvg._warnings is args['_warnings']
 
     def test_invalid_lv(self):
@@ -535,15 +535,15 @@ class TestLayerViewDigraph:
                                                _with_terms=override)
         assert lvg._filename == expected_filename
 
-    def test_with_verbose(self, layer_view):
+    def test_with_compact(self, layer_view):
         override = True
-        lvg = visualizations.LayerViewDigraph(layer_view, verbose=override)
+        lvg = visualizations.LayerViewDigraph(layer_view, compact=override)
         assert lvg._lv == layer_view
-        # verify 'verbose' override used for graph construction
-        self._validate_args(lvg, _verbose=override)
+        # verify 'compact' override used for graph construction
+        self._validate_args(lvg, _compact=override)
 
         expected_filename = self._get_filename(layer_view.id,
-                                               _verbose=override)
+                                               _compact=override)
         assert lvg._filename == expected_filename
 
     def test_without_warnings(self, layer_view):
@@ -609,18 +609,18 @@ class TestLayerViewDigraph:
         lvg._graph.render.assert_called_with(expected_filename, view=True)
         assert lvg._filename == expected_filename
 
-    def test_render_verbose(self, layer_view):
-        """Test that the 'verbose' parameter affects the filename
+    def test_render_compact(self, layer_view):
+        """Test that the 'compact' parameter affects the filename
         that is is passed to the underlying graphviz.render() method
         """
         override = True
-        lvg = visualizations.LayerViewDigraph(layer_view, verbose=override)
+        lvg = visualizations.LayerViewDigraph(layer_view, compact=override)
         assert lvg._lv == layer_view
-        # verify 'verbose' override used for graph construction
-        self._validate_args(lvg, _verbose=override)
+        # verify 'compact' override used for graph construction
+        self._validate_args(lvg, _compact=override)
 
         expected_filename = self._get_filename(layer_view.id,
-                                               _verbose=override)
+                                               _compact=override)
         assert lvg._filename == expected_filename
 
         # mock out the underlying graphviz Digraph and ensure the appropriate
@@ -632,7 +632,7 @@ class TestLayerViewDigraph:
         assert lvg._filename == expected_filename
 
     def test_render_without_view(self, layer_view):
-        """Test that the 'verbose' parameter affects the filename
+        """Test that the 'compact' parameter affects the filename
         that is is passed to the underlying graphviz.render() method
         """
         lvg = visualizations.LayerViewDigraph(layer_view)
@@ -716,7 +716,7 @@ class TestLayerViewDigraph:
         assert lvg._filename == expected_filename
         assert lvg._graph.graph_attr['rankdir'] == 'TB'
 
-    def test_fromId(self):
+    def test_from_id(self):
         """Requests by Id don't work unless you have defined the following
         analyzere varialbes, and a connecton can be established
            - analyzere.base_url
@@ -725,4 +725,4 @@ class TestLayerViewDigraph:
         """
         lvid = 'ee3f8420-c583-4dd4-9f9d-8ade29b0d82f'
         with pytest.raises(ConnectionError):
-            visualizations.LayerViewDigraph.fromId(lvid)
+            visualizations.LayerViewDigraph.from_id(lvid)

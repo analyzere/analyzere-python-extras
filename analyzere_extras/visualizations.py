@@ -178,12 +178,12 @@ class LayerViewDigraph(object):
     """
     def _update_filename(self, filename=None):
         # build filename with format:
-        #    '<lv_id>_<rankdir>+<verbose><_with_terms>.<format>'
+        #    '<lv_id>_<rankdir><_not_compact><_with_terms>.<format>'
         self._filename = (filename if filename else
                           '{}_{}{}{}'.format(self._lv.id,
                                              self._rankdir,
-                                             '_verbose' if self._verbose
-                                             else '',
+                                             '' if self._compact
+                                             else '_not_compact',
                                              '_with_terms' if self._with_terms
                                              else ''))
 
@@ -194,7 +194,7 @@ class LayerViewDigraph(object):
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
 
-        if (node_hash not in unique_nodes) or self._verbose:
+        if (node_hash not in unique_nodes) or not self._compact:
             unique_nodes[node_hash] = next(sequence)
 
         if l.type == 'NestedLayer':
@@ -232,20 +232,21 @@ class LayerViewDigraph(object):
 
             self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:
-                ls_name = '{} "{}" {}'.format(
-                    ls.type,
-                    _format_description(ls.description),
-                    '({})'.format(next(sequence)) if self._verbose else '')
+                ls_name = '{} "{}"'.format(
+                    ls.type, _format_description(ls.description))
+                ls_id = '{}{}'.format(ls.id,
+                                      ' ({})'.format(next(sequence))
+                                      if not self._compact else '')
                 if not (ls_name, node_hash) in edges:
                     self._graph.attr('node',
                                      shape='box', color='lightgrey',
                                      style='filled', fillcolor='lightgrey')
-                    self._graph.node(ls.id, label=ls_name)
-                    self._graph.edge(ls.id, node_hash)
-                    edges.add((ls.id, node_hash))
+                    self._graph.node(ls_id, label=ls_name)
+                    self._graph.edge(ls_id, node_hash)
+                    edges.add((ls_id, node_hash))
         return node_hash
 
-    def __init__(self, lv, with_terms=True, verbose=False,
+    def __init__(self, lv, with_terms=True, compact=True,
                  format='png', rankdir='BT', warnings=True):
         """Generate a Graphviz.Digraph for the given LayerView
 
@@ -254,8 +255,8 @@ class LayerViewDigraph(object):
            with_terms   specify that Layer terms are included in each
                         node of the graph (default=True).
 
-           verbose      controls if duplicate nodes should be omitted
-                        (default=False)
+           compact      controls if duplicate nodes should be omitted
+                        (default=True).
 
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc. (default='png').
@@ -279,7 +280,7 @@ class LayerViewDigraph(object):
         self._with_terms = with_terms
         self._rankdir = rankdir
         self._format = format
-        self._verbose = verbose
+        self._compact = compact
         self._warnings = warnings
 
         # initialize the filename
@@ -300,8 +301,8 @@ class LayerViewDigraph(object):
         self._generate_nodes(lv.layer, sequence, unique_nodes, edges)
 
     @staticmethod
-    def fromId(lv_id, with_terms=True, verbose=False,
-               format='png', rankdir='BT'):
+    def from_id(lv_id, with_terms=True, compact=True,
+                format='png', rankdir='BT'):
         """Generate a LayerViewDigraph for the given LayerView Id
 
         Optional parameters:
@@ -309,7 +310,8 @@ class LayerViewDigraph(object):
            with_terms   specify that Layer terms are included in each
                         node of the graph.
 
-           verbose      controls if duplicate nodes should be omitted
+           compact      controls if duplicate nodes should be omitted
+                        (default=True).
 
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc.
@@ -321,12 +323,12 @@ class LayerViewDigraph(object):
                         from bottom to top, and from right to left,
                         respectively.
         """
-        # This raise and exception if any of the following analyzere variables
-        # are not defined:
+        # This will raise and exception if any of the following analyzere
+        # variables are not defined:
         #       - analyzere.base_url
         #       - analyzere.username
         #       - analyzere.password
-        return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, verbose,
+        return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, compact,
                                 format=format, rankdir=rankdir)
 
     def render(self, filename=None, view=True, format=None, rankdir=None):
@@ -375,7 +377,7 @@ class LayerViewDigraph(object):
 
         except RuntimeError:
             # native display failed, revert to returning a clickable FileLink
-            # iff we arein a python notebook, otherwise return the filename.
+            # iff we are in a python notebook, otherwise return the filename.
             return (FileLink(self._graph.render(self._filename, view=False))
                     if _in_notebook else
                     self._graph.render(self._filename, view=False))

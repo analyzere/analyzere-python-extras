@@ -72,18 +72,18 @@ class FormattingHelper:
         self._terms = OrderedDict()
         self.warning = False
 
-    def append(self, required_attr, attr_formatted=None,
+    def append(self, required_attr, display_name=None,
                formatter=lambda x: str(x),
                condition=lambda: True,
                warning=lambda: False):
-        if not attr_formatted:
-            attr_formatted = required_attr
+        if not display_name:
+            display_name = required_attr
 
         if not hasattr(self._layer, required_attr) or not condition():
             return
 
         attr = getattr(self._layer, required_attr)
-        self._terms[attr_formatted] = formatter(attr)
+        self._terms[display_name] = formatter(attr)
         self.warning |= warning()
 
     def append_term(self, term, value):
@@ -103,7 +103,7 @@ def _format_layer_terms(layer):
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
         formatter.append_term('coverage', _format_coverage(layer))
 
-    formatter.append('participation', attr_formatted='share',
+    formatter.append('participation', display_name='share',
                      formatter=lambda x: '{}%'.format(x*100),
                      warning=lambda: layer.participation == 0.0)
 
@@ -115,39 +115,39 @@ def _format_layer_terms(layer):
                                       and len(layer.filters) == 0))
 
     # CatXL, AggXL, Generic
-    formatter.append('attachment', attr_formatted='occ_att',
+    formatter.append('attachment', display_name='occ_att',
                      formatter=_format_MoneyField,
                      warning=lambda: (layer.attachment.value
                                       >= float_info.max))
 
-    formatter.append(required_attr='limit', attr_formatted='occ_lim',
+    formatter.append(required_attr='limit', display_name='occ_lim',
                      formatter=_format_MoneyField)
 
     # CatXL, IndustryLossWarranty
     formatter.append('nth')
 
-    formatter.append('reinstatements', attr_formatted='reinsts',
+    formatter.append('reinstatements', display_name='reinsts',
                      formatter=_format_reinstatements,
                      condition=lambda: layer.reinstatements)
 
     formatter.append('franchise', formatter=_format_MoneyField)
 
     # QuotaShare, AggregateQuotaShare
-    formatter.append('event_limit', attr_formatted='event_lim',
+    formatter.append('event_limit', display_name='event_lim',
                      formatter=_format_MoneyField)
 
     # AggXL, AggregateQuotaShare
     formatter.append('aggregate_attachment',
-                     attr_formatted='agg_att',
+                     display_name='agg_att',
                      formatter=_format_MoneyField,
                      warning=lambda: (layer.aggregate_attachment.value
                                       >= float_info.max))
-    formatter.append('aggregate_limit', attr_formatted='agg_lim',
+    formatter.append('aggregate_limit', display_name='agg_lim',
                      formatter=_format_MoneyField)
 
     # AggregateQuotaShare
-    formatter.append('aggregate_period', attr_formatted='agg_period')
-    formatter.append('aggregate_reset', attr_formatted='agg_reset',
+    formatter.append('aggregate_period', display_name='agg_period')
+    formatter.append('aggregate_reset', display_name='agg_reset',
                      condition=lambda: layer.aggregate_reset > 1)
 
     # SurplusShare
@@ -161,7 +161,7 @@ def _format_layer_terms(layer):
 
     # NoClaimsBonus
     formatter.append('payout_date', formatter=_format_DateField)
-    formatter.append('payout_amount', attr_formatted='payout',
+    formatter.append('payout_amount', display_name='payout',
                      formatter=_format_MoneyField)
 
     formatter.append('premium', formatter=_format_MoneyField,

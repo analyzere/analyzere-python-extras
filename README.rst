@@ -1,23 +1,62 @@
-analyzere-python-viz |travis|
-=============================
 
-An extension to the analyzere python library that faciliates visualization of Analyze Re LayerView objects.
+Analyzere Python Client Extras  |travis|
+========================================
+
+
+An extension to the analyzere python library that facilitates "extras"
+including visualizations of Analyze Re LayerView objects.
 
 .. |travis| image:: https://travis-ci.org/analyzere/analyzere-python-extras.svg?branch=master
+    :alt: Travis-CI Build Status
     :target: https://travis-ci.org/analyzere/analyzere-python-extras
-    
+
 Installation
 ------------
 
 ::
 
-   pip install analyzere-viz
+   pip install analyzere_extras
 
 Usage
 -----
 
-Please see http://docs.analyzere.net/?python for the most up-to-date
-documentation.
+In order to make use of the visualization tools in the `analyzere_extras`
+module you will need to import the `analyzere` module.
+
+First you will need to define your connection information::
+
+   import analyzere
+   analyzere.base_url = '<your server url>'
+   analyzere.username = '<your userid>'
+   analyzere.password = '<your password>'
+
+Then you will need to query a LayerView that you would like to graph::
+
+   from analyzere import LayerView
+
+   lv = analyzere.LayerView.retrieve('011785b1-203b-696e-424e-7da9b0ec779a')
+
+Now you can generate a graph of your LayerView::
+
+   from analyzere_extras.visualizations import LayerViewDigraph
+
+   g = LayerViewDigraph(lv)  # defaults: with_terms=True, compact=True, rankdir='TB'
+   g = LayerViewDigraph(lv, with_terms=False)  # omit Layer terms from nodes
+   g = LayerViewDigraph(lv, compact=False) # graph duplicate nodes
+   g = LayerViewDigraph(lv, rankdir='LR')  # render the graph from Left to Right
+   g = LayerViewDigraph(lv, warnings=False)  # disable error node highlighting
+
+Then to render your graph::
+
+   g.render()  # defaults: filename=None, view=True, format=None, rankdir=None
+   g.render(filename='mygraph') # write graph to 'mygraph'
+   g.render(view=False)    # disable attempts to auto display the graph
+   g.render(format='pdf')  # change the output format 'pdf'
+   g.render(rankdir='LR')  # render the graph from Left to Right
+
+Shortcut: generate a graph for a given LayerView Id::
+
+   graph = LayerViewDigraph.from_id('011785b1-203b-696e-424e-7da9b0ec779a')
 
 Testing
 -------

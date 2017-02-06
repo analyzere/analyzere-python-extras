@@ -237,7 +237,7 @@ class LayerViewDigraph(object):
                 ls_id = '{}{}'.format(ls.id,
                                       ' ({})'.format(next(sequence))
                                       if not self._compact else '')
-                if not (ls_name, node_hash) in edges:
+                if not (ls_id, node_hash) in edges:
                     self._graph.attr('node',
                                      shape='box', color='lightgrey',
                                      style='filled', fillcolor='lightgrey')

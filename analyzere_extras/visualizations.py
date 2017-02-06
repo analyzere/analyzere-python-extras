@@ -33,15 +33,16 @@ def _format_MoneyField(mf):
 
 
 def _format_filters(filters):
-    if len(filters) == 0:
+    num_filters = len(filters)
+    if num_filters == 0:
         filters_value = '(empty)'
-    elif len(filters) < 4:
+    elif num_filters < 4:
         filter_strings = []
         for f in filters:
             filter_strings.append("'{}'".format(f.name))
         filters_value = '[{}]'.format(', '.join(filter_strings))
     else:
-        filters_value = '({} filters)'.format(len(filters))
+        filters_value = '({} filters)'.format(num_filters)
     return filters_value
 
 
@@ -95,19 +96,16 @@ def _format_layer_terms(layer):
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
         terms['coverage'] = _format_coverage(layer)
 
+    formatter.append('participation', attr_formatted='share',
+                     formatter=lambda x: '{}%'.format(x*100),
+                     warning=lambda: layer.participation == 0.0)
+
     # FilterLayer
     formatter.append('filters', formatter=_format_filters)
-
-    formatter.append('limit', attr_formatted='occ_lim',
-                     formatter=_format_MoneyField)
 
     formatter.append('invert',
                      warning=lambda: (not layer.invert
                                       and len(layer.filters) == 0))
-
-    formatter.append('participation', attr_formatted='share',
-                     formatter=lambda x: '{}%'.format(x*100),
-                     warning=lambda: layer.participation == 0.0)
 
     # CatXL, AggXL, Generic
     formatter.append('attachment', attr_formatted='occ_att',
@@ -118,9 +116,14 @@ def _format_layer_terms(layer):
     formatter.append(required_attr='limit', attr_formatted='occ_lim',
                      formatter=_format_MoneyField)
 
+    # CatXL, IndustryLossWarranty
+    formatter.append('nth')
+
     formatter.append('reinstatements', attr_formatted='reinsts',
                      formatter=_format_reinstatements,
                      condition=lambda: layer.reinstatements)
+
+    formatter.append('franchise', formatter=_format_MoneyField)
 
     # QuotaShare, AggregateQuotaShare
     formatter.append('event_limit', attr_formatted='event_lim',
@@ -148,9 +151,6 @@ def _format_layer_terms(layer):
     # IndustryLossWarranty
     formatter.append('trigger', formatter=_format_MoneyField)
     formatter.append('payout', formatter=_format_MoneyField)
-
-    # CatXL, IndustryLossWarranty
-    formatter.append('nth')
 
     # NoClaimsBonus
     formatter.append('payout_date', formatter=_format_DateField)

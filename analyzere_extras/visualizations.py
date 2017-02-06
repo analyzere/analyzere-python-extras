@@ -67,9 +67,9 @@ def _format_coverage(layer):
 
 
 class FormattingHelper:
-    def __init__(self, layer, terms):
-        self.layer = layer
-        self.terms = terms
+    def __init__(self, layer):
+        self._layer = layer
+        self._terms = OrderedDict()
         self.warning = False
 
     def append(self, required_attr, attr_formatted=None,
@@ -79,22 +79,29 @@ class FormattingHelper:
         if not attr_formatted:
             attr_formatted = required_attr
 
-        if not hasattr(self.layer, required_attr) or not condition():
+        if not hasattr(self._layer, required_attr) or not condition():
             return
 
-        attr = getattr(self.layer, required_attr)
-        self.terms[attr_formatted] = formatter(attr)
+        attr = getattr(self._layer, required_attr)
+        self._terms[attr_formatted] = formatter(attr)
         self.warning |= warning()
+
+    def append_term(self, term, value):
+        self._terms[term] = value
+
+    def formatted_terms(self):
+        leading_text = '\n' if self._terms else ''
+        return (leading_text
+                + '\n'.join(['{}={}'.format(key, value)
+                             for key, value in self._terms.items()]))
 
 
 def _format_layer_terms(layer):
     """Get the terms for the given layer for display in Graphviz"""
-    terms = OrderedDict()
-
-    formatter = FormattingHelper(layer, terms)
+    formatter = FormattingHelper(layer)
 
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
-        terms['coverage'] = _format_coverage(layer)
+        formatter.append_term('coverage', _format_coverage(layer))
 
     formatter.append('participation', attr_formatted='share',
                      formatter=lambda x: '{}%'.format(x*100),
@@ -160,10 +167,7 @@ def _format_layer_terms(layer):
     formatter.append('premium', formatter=_format_MoneyField,
                      condition=lambda: layer.premium is not None)
 
-    leading_text = '\n' if terms else ''
-    return (leading_text
-            + '\n'.join(['{}={}'.format(key, value)
-                         for key, value in terms.items()])), formatter.warning
+    return formatter.formatted_terms(), formatter.warning
 
 
 class LayerViewDigraph(object):

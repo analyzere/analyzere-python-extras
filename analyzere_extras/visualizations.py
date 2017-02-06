@@ -222,9 +222,9 @@ class LayerViewDigraph(object):
                              style='filled',
                              fillcolor='white',
                              color='black')
-            if warning:
-                self._graph.attr('node', color='red',
-                                 fillcolor='red')
+            # color nodes with 'warnings' as red iff configured
+            if warning and self._warnings:
+                self._graph.attr('node', color='red', fillcolor='red')
 
             self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:
@@ -242,25 +242,30 @@ class LayerViewDigraph(object):
         return node_hash
 
     def __init__(self, lv, with_terms=True, verbose=False,
-                 format='png', rankdir='BT'):
+                 format='png', rankdir='BT', warnings=True):
         """Generate a Graphviz.Digraph for the given LayerView
 
         Optional parameters that control the visualization:
 
            with_terms   specify that Layer terms are included in each
-                        node of the graph.
+                        node of the graph (default=True).
 
            verbose      controls if duplicate nodes should be omitted
+                        (default=False)
 
            format       exposes the graphviz 'format' option which include
-                        'pdf', 'png', etc.
+                        'pdf', 'png', etc. (default='png').
 
            rankdir      exposes the graphviz 'rankdir' option that controls
                         the orientation of the graph.  Options include
                         'TB', 'LR', 'BT', 'RL', corresponding to directed
                         graphs drawn from top to bottom, from left to right,
                         from bottom to top, and from right to left,
-                        respectively.
+                        respectively (default='BT').
+
+           warnings     highlight nodes with suspicious terms by coloring them
+                        red (default=True).
+
         """
         # sanity check on the input
         if not isinstance(lv, LayerView):
@@ -271,6 +276,7 @@ class LayerViewDigraph(object):
         self._rankdir = rankdir
         self._format = format
         self._verbose = verbose
+        self._warnings = warnings
 
         # initialize the filename
         self._update_filename()

@@ -472,7 +472,8 @@ def default_LayerViewDigraph_args():
     default_args = {'_with_terms': True,
                     '_rankdir': 'BT',
                     '_format': 'png',
-                    '_verbose': False}
+                    '_verbose': False,
+                    '_warnings': True}
     return default_args
 
 
@@ -506,6 +507,7 @@ class TestLayerViewDigraph:
         assert lvg._rankdir == args['_rankdir']
         assert lvg._format == args['_format']
         assert lvg._verbose is args['_verbose']
+        assert lvg._warnings is args['_warnings']
 
     def test_invalid_lv(self):
         m = {'something': 'here'}
@@ -542,6 +544,17 @@ class TestLayerViewDigraph:
 
         expected_filename = self._get_filename(layer_view.id,
                                                _verbose=override)
+        assert lvg._filename == expected_filename
+
+    def test_without_warnings(self, layer_view):
+        override = False
+        lvg = visualizations.LayerViewDigraph(layer_view, warnings=override)
+        assert lvg._lv == layer_view
+        # verify 'warnings' override used for graph construction
+        self._validate_args(lvg, _warnings=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _warnings=override)
         assert lvg._filename == expected_filename
 
     def test_format(self, layer_view):

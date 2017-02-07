@@ -331,7 +331,7 @@ class LayerViewDigraph(object):
         return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, compact,
                                 format=format, rankdir=rankdir)
 
-    def render(self, filename=None, view=True, format=None, rankdir=None):
+    def render(self, filename=None, view=False, format=None, rankdir=None):
         """Render a LayerViewDigraph with the Graphviz engine
 
         Optional parameters:
@@ -339,7 +339,8 @@ class LayerViewDigraph(object):
            filename     specify the filename to be used when rendering.
 
            view         exposes the graphviz 'view' option that uses the
-                        default application to open the rendered graph.
+                        default application to open the rendered graph
+                        (default=False).
 
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc.

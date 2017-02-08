@@ -584,7 +584,7 @@ class TestLayerViewDigraph:
         lvg._graph = Mock()
 
         lvg.render()
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
 
     def test_render_without_terms(self, layer_view):
@@ -606,7 +606,7 @@ class TestLayerViewDigraph:
         lvg._graph = Mock()
 
         lvg.render()
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
 
     def test_render_compact(self, layer_view):
@@ -628,10 +628,10 @@ class TestLayerViewDigraph:
         lvg._graph = Mock()
 
         lvg.render()
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
 
-    def test_render_without_view(self, layer_view):
+    def test_render_with_view(self, layer_view):
         """Test that the 'compact' parameter affects the filename
         that is is passed to the underlying graphviz.render() method
         """
@@ -647,8 +647,8 @@ class TestLayerViewDigraph:
         # values are passed to its render() method
         lvg._graph = Mock()
 
-        lvg.render(view=False)
-        lvg._graph.render.assert_called_with(expected_filename, view=False)
+        lvg.render(view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=True)
         assert lvg._filename == expected_filename
 
     def test_render_filename(self, layer_view):
@@ -671,7 +671,7 @@ class TestLayerViewDigraph:
                                                _filename=filename)
 
         lvg.render(filename=filename)
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
 
     def test_render_format(self, layer_view):
@@ -689,7 +689,7 @@ class TestLayerViewDigraph:
 
         lvg.render(format='pdf')
         expected_filename = self._get_filename(layer_view.id)
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
         assert lvg._format == 'pdf'
 
@@ -712,7 +712,7 @@ class TestLayerViewDigraph:
         expected_filename = self._get_filename(layer_view.id,
                                                _rankdir=rankdir)
         lvg.render(rankdir=rankdir)
-        lvg._graph.render.assert_called_with(expected_filename, view=True)
+        lvg._graph.render.assert_called_with(expected_filename, view=False)
         assert lvg._filename == expected_filename
         assert lvg._graph.graph_attr['rankdir'] == 'TB'
 

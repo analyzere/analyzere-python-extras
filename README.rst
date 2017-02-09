@@ -40,7 +40,7 @@ Now you can generate a graph of your LayerView::
 
    from analyzere_extras.visualizations import LayerViewDigraph
 
-   g = LayerViewDigraph(lv)  # defaults: with_terms=True, compact=True, rankdir='TB'
+   g = LayerViewDigraph(lv)  # defaults: with_terms=True, compact=True, rankdir='TB', warnings=True
    g = LayerViewDigraph(lv, with_terms=False)  # omit Layer terms from nodes
    g = LayerViewDigraph(lv, compact=False) # graph duplicate nodes
    g = LayerViewDigraph(lv, rankdir='LR')  # render the graph from Left to Right
@@ -58,7 +58,7 @@ Shortcut: generate a graph for a given LayerView Id::
 
    graph = LayerViewDigraph.from_id('011785b1-203b-696e-424e-7da9b0ec779a')
 
-Sample images:
+Sample LayerView graph images:
 
 +----------+----------+-------------+-----------+---------------------------------------------------------------------+
 | rankdir= | compact= | with_terms= | warnings= | sample image                                                        |

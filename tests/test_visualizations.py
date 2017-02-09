@@ -486,12 +486,16 @@ class TestLayerViewDigraph:
         args = default_LayerViewDigraph_args()
         args.update(overrides)
         filename = (args['_filename'] if '_filename' in args else
-                    '{}_{}{}{}'.format(lv_id,
-                                       args['_rankdir'],
-                                       '' if args['_compact']
-                                       else '_not_compace',
-                                       '_with_terms' if args['_with_terms']
-                                       else ''))
+                    '{}_{}_{}_{}_{}'.format(lv_id,
+                                            args['_rankdir'],
+                                            'compact' if args['_compact']
+                                            else 'not-compact',
+                                            'with-terms'
+                                            if args['_with_terms']
+                                            else 'without-terms',
+                                            'with-warnings'
+                                            if args['_warnings']
+                                            else 'without-warnings'))
         return filename
 
     def _validate_args(self, lvg, **overrides):

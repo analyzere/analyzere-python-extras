@@ -178,14 +178,20 @@ class LayerViewDigraph(object):
     """
     def _update_filename(self, filename=None):
         # build filename with format:
-        #    '<lv_id>_<rankdir><_not_compact><_with_terms>.<format>'
+        #    '<lv_id>_<rankdir>_<[not-]compact>_<with[out]-terms>\
+        #    _<with[out]-warnings>.<format>'
         self._filename = (filename if filename else
-                          '{}_{}{}{}'.format(self._lv.id,
-                                             self._rankdir,
-                                             '' if self._compact
-                                             else '_not_compact',
-                                             '_with_terms' if self._with_terms
-                                             else ''))
+                          '{}_{}_{}_{}_{}'.format(self._lv.id,
+                                                  self._rankdir,
+                                                  'compact'
+                                                  if self._compact
+                                                  else 'not-compact',
+                                                  'with-terms'
+                                                  if self._with_terms
+                                                  else 'without-terms',
+                                                  'with-warnings'
+                                                  if self._warnings
+                                                  else 'without-warnings'))
 
     def _generate_nodes(self, l, sequence, unique_nodes, edges,
                         parent_hash=None, prefix=None):

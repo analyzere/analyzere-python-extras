@@ -189,9 +189,9 @@ class LayerViewDigraph(object):
                                                   'with-terms'
                                                   if self._with_terms
                                                   else 'without-terms',
-                                                  'with-warnings'
+                                                  'warnings-enabled'
                                                   if self._warnings
-                                                  else 'without-warnings'))
+                                                  else 'warnings-disabled'))
 
     def _generate_nodes(self, l, sequence, unique_nodes, edges,
                         parent_hash=None, prefix=None):

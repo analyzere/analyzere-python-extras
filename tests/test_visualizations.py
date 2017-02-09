@@ -493,9 +493,9 @@ class TestLayerViewDigraph:
                                             'with-terms'
                                             if args['_with_terms']
                                             else 'without-terms',
-                                            'with-warnings'
+                                            'warnings-enabled'
                                             if args['_warnings']
-                                            else 'without-warnings'))
+                                            else 'warnings-disabled'))
         return filename
 
     def _validate_args(self, lvg, **overrides):

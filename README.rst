@@ -50,31 +50,39 @@ warnings=True|False
 +--------+--------+-----------+---------+---------------------------------------------------+
 | rankdir| compact| with_terms| warnings| sample image                                      |
 +========+========+===========+=========+===================================================+
-| 'BT'   | True   | True      | True    | BT_compact_with-terms_warnings-enabled_           |
+| 'BT'   | True   | True      | True    | |BT_compact_with-terms_warnings-enabled|          |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'LR'   | True   | True      | True    | LR_compact_with-terms_warnings-enabled_           |
+| 'LR'   | True   | True      | True    | |LR_compact_with-terms_warnings-enabled|          |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'BT'   | True   | True      | False   | BT_compact_with-terms_warnings-disabled_          |
+| 'BT'   | True   | True      | False   | |BT_compact_with-terms_warnings-disabled|         |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'LR'   | True   | True      | False   | LR_compact_with-terms_warnings-disabled_          |
+| 'LR'   | True   | True      | False   | |LR_compact_with-terms_warnings-disabled|         |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'BT'   | True   | False     | True    | BT_compact_without-terms_warnings-enabled_        |
+| 'BT'   | True   | False     | True    | |BT_compact_without-terms_warnings-enabled|       |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'LR'   | True   | False     | True    | LR_compact_without-terms_warnings-enabled_        |
+| 'LR'   | True   | False     | True    | |LR_compact_without-terms_warnings-enabled|       |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'BT'   | False  | False     | False   | BT_not-compact_without-terms_warnings-disabled_   |
+| 'BT'   | False  | False     | False   | |BT_not-compact_without-terms_warnings-disabled|  |
 +--------+--------+-----------+---------+---------------------------------------------------+
-| 'LR'   | False  | False     | False   | LR_not-compact_without-terms_warnings-disabled_   |
+| 'LR'   | False  | False     | False   | |LR_not-compact_without-terms_warnings-disabled|  |
 +--------+--------+-----------+---------+---------------------------------------------------+
 
-.. _BT_compact_with-terms_warnings-enabled: /examples/BT_compact_with-terms_warnings-enabled.png
-.. _LR_compact_with-terms_warnings-enabled: /examples/LR_compact_with-terms_warnings-enabled.png
-.. _BT_compact_with-terms_warnings-disabled: /examples/BT_compact_with-terms_warnings-disabled.png
-.. _LR_compact_with-terms_warnings-disabled: /examples/LR_compact_with-terms_warnings-disabled.png
-.. _BT_compact_without-terms_warnings-enabled: /examples/BT_compact_without-terms_warnings-enabled.png
-.. _LR_compact_without-terms_warnings-enabled: /examples/LR_compact_without-terms_warnings-enabled.png
-.. _BT_not-compact_without-terms_warnings-disabled: /examples/BT_not-compact_without-terms_warnings-disabled.png
-.. _LR_not-compact_without-terms_warnings-disabled: /examples/LR_not-compact_without-terms_warnings-disabled.png
+.. |BT_compact_with-terms_warnings-enabled| image:: /examples/BT_compact_with-terms_warnings-enabled.png
+   :width: 40pt
+.. |LR_compact_with-terms_warnings-enabled| image:: /examples/LR_compact_with-terms_warnings-enabled.png
+   :width: 40pt
+.. |BT_compact_with-terms_warnings-disabled| image:: /examples/BT_compact_with-terms_warnings-disabled.png
+   :width: 40pt
+.. |LR_compact_with-terms_warnings-disabled| image:: /examples/LR_compact_with-terms_warnings-disabled.png
+   :width: 40pt
+.. |BT_compact_without-terms_warnings-enabled| image:: /examples/BT_compact_without-terms_warnings-enabled.png
+   :width: 40pt
+.. |LR_compact_without-terms_warnings-enabled| image:: /examples/LR_compact_without-terms_warnings-enabled.png
+   :width: 40pt
+.. |BT_not-compact_without-terms_warnings-disabled| image:: /examples/BT_not-compact_without-terms_warnings-disabled.png
+   :width: 40pt
+.. |LR_not-compact_without-terms_warnings-disabled| image:: /examples/LR_not-compact_without-terms_warnings-disabled.png
+   :width: 40pt
 
 
 Usage

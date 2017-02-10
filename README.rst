@@ -17,6 +17,66 @@ Installation
 
    pip install analyzere_extras
 
+
+Graphing Options
+----------------
+
+This graphing utility provides some methods of controlling the style and format of the rendered image.
+
+rankdir='XX'
+  Option that controls the orientation of the graph. Options include:
+
+  - 'BT' bottom to top (default)
+  - 'TB' top to bottom
+  - 'LR' left to right
+  - 'RL' right to left
+
+compact=True|False
+  Controls if duplicate nodes should be omitted (default=True).  This option tends to produce smaller graphs, which should be easier to read.
+
+with_terms=True|False
+  Specify that a Layer's terms are included in each node of the graph (default=True).
+
+warnings=True|False
+  Highlight nodes with suspicious terms by coloring the node red. Warning nodes are generated when any of the following conditions are true:
+
+  - ``participation = 0.0``
+  - ``invert = true`` and ``filters = []``
+  - ``attachment`` or ``aggregate_attachment`` = unlimited
+
+
+**Sample LayerView Images:**
+
++--------+--------+-----------+---------+---------------------------------------------------+
+| rankdir| compact| with_terms| warnings| sample image                                      |
++========+========+===========+=========+===================================================+
+| 'BT'   | True   | True      | True    | BT_compact_with-terms_warnings-enabled_           |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | True      | True    | LR_compact_with-terms_warnings-enabled_           |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | True   | True      | False   | BT_compact_with-terms_warnings-disabled_          |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | True      | False   | LR_compact_with-terms_warnings-disabled_          |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | True   | False     | True    | BT_compact_without-terms_warnings-enabled_        |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | False     | True    | LR_compact_without-terms_warnings-enabled_        |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | False  | False     | False   | BT_not-compact_without-terms_warnings-disabled_   |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | False  | False     | False   | LR_not-compact_without-terms_warnings-disabled_   |
++--------+--------+-----------+---------+---------------------------------------------------+
+
+.. _BT_compact_with-terms_warnings-enabled: /examples/BT_compact_with-terms_warnings-enabled.png
+.. _LR_compact_with-terms_warnings-enabled: /examples/LR_compact_with-terms_warnings-enabled.png
+.. _BT_compact_with-terms_warnings-disabled: /examples/BT_compact_with-terms_warnings-disabled.png
+.. _LR_compact_with-terms_warnings-disabled: /examples/LR_compact_with-terms_warnings-disabled.png
+.. _BT_compact_without-terms_warnings-enabled: /examples/BT_compact_without-terms_warnings-enabled.png
+.. _LR_compact_without-terms_warnings-enabled: /examples/LR_compact_without-terms_warnings-enabled.png
+.. _BT_not-compact_without-terms_warnings-disabled: /examples/BT_not-compact_without-terms_warnings-disabled.png
+.. _LR_not-compact_without-terms_warnings-disabled: /examples/LR_not-compact_without-terms_warnings-disabled.png
+
+
 Usage
 -----
 
@@ -50,35 +110,13 @@ Then to render your graph::
 
    g.render()  # defaults: filename=None, view=True, format=None, rankdir=None
    g.render(filename='mygraph') # write graph to 'mygraph'
-   g.render(view=True)    # attempt to auto display the graph
+   g.render(view=True)     # attempt to auto display the graph
    g.render(format='pdf')  # change the output format 'pdf'
    g.render(rankdir='LR')  # render the graph from Left to Right
 
 Shortcut: generate a graph for a given LayerView Id::
 
    graph = LayerViewDigraph.from_id('011785b1-203b-696e-424e-7da9b0ec779a')
-
-Sample LayerView graph images:
-
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| rankdir= | compact= | with_terms= | warnings= | sample image                                                        |
-+==========+==========+=============+===========+=====================================================================+
-| 'BT'     | True     | True        | True      | `</examples/BT_compact_with-terms_warnings-enabled.png>`_           |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'LR'     | True     | True        | True      | `</examples/LR_compact_with-terms_warnings-enabled.png>`_           |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'BT'     | True     | True        | False     | `</examples/BT_compact_with-terms_warnings-disabled.png>`_          |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'LR'     | True     | True        | False     | `</examples/LR_compact_with-terms_warnings-disabled.png>`_          |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'BT'     | True     | False       | True      | `</examples/BT_compact_without-terms_warnings-enabled.png>`_        |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'LR'     | True     | False       | True      | `</examples/LR_compact_without-terms_warnings-enabled.png>`_        |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'BT'     | False    | False       | False     | `</examples/BT_not-compact_without-terms_warnings-disabled.png>`_   |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
-| 'LR'     | False    | False       | False     | `</examples/LR_not-compact_without-terms_warnings-disabled.png>`_   |
-+----------+----------+-------------+-----------+---------------------------------------------------------------------+
 
 
 Testing

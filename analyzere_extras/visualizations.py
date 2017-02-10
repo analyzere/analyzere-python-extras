@@ -234,7 +234,7 @@ class LayerViewDigraph(object):
                              color='black')
             # color nodes with 'warnings' as red iff configured
             if warning and self._warnings:
-                self._graph.attr('node', color='red', fillcolor='red')
+                self._graph.attr('node', color='tomato', fillcolor='tomato')
 
             self._graph.node(node_hash, label=name)
             for ls in l.loss_sets:

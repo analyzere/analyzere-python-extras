@@ -1,6 +1,6 @@
 
-Analyzere Python Client Extras  |travis|
-========================================
+Analyzere Python Client Extras  |travis| |Code Health|
+======================================================
 
 
 An extension to the analyzere python library that facilitates "extras"
@@ -9,7 +9,10 @@ including visualizations of Analyze Re LayerView objects.
 .. |travis| image:: https://travis-ci.org/analyzere/analyzere-python-extras.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/analyzere/analyzere-python-extras
-
+.. |Code Health| image:: https://landscape.io/github/analyzere/analyzere-python-extras/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/analyzere/analyzere-python-extras/master
+   :alt: Code Health
+   
 Installation
 ------------
 

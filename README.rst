@@ -1,6 +1,6 @@
 
-Analyzere Python Client Extras  |travis|
-========================================
+Analyzere Python Client Extras  |travis| |Code Health|
+======================================================
 
 
 An extension to the analyzere python library that facilitates "extras"
@@ -9,7 +9,10 @@ including visualizations of Analyze Re LayerView objects.
 .. |travis| image:: https://travis-ci.org/analyzere/analyzere-python-extras.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/analyzere/analyzere-python-extras
-
+.. |Code Health| image:: https://landscape.io/github/analyzere/analyzere-python-extras/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/analyzere/analyzere-python-extras/master
+   :alt: Code Health
+   
 Installation
 ------------
 
@@ -47,19 +50,25 @@ warnings=True|False
 
 **Sample LayerView Images:**
 
-+------------------------------------------------+-----------------------------------------------------------------------------------------------------+
-| ``LayerViewDigraph(lv, ...)``                  |         ``render(...)``                                                                             |
-+--------------+-----------------+---------------+--------------------------------------------------+--------------------------------------------------+
-| ``compact=`` | ``with_terms=`` | ``warnings=`` |      ``rankdir='BT'``                            | ``rankdir='LR'``                                 |
-+==============+=================+===============+==================================================+==================================================+
-| *True*       | *True*          | *True*        | |BT_compact_with-terms_warnings-enabled|         | |LR_compact_with-terms_warnings-enabled|         |
-+--------------+-----------------+---------------+--------------------------------------------------+--------------------------------------------------+
-| *True*       | *True*          | **False**     | |BT_compact_with-terms_warnings-disabled|        | |LR_compact_with-terms_warnings-disabled|        |
-+--------------+-----------------+---------------+--------------------------------------------------+--------------------------------------------------+
-| *True*       | **False**       | *True*        | |BT_compact_without-terms_warnings-enabled|      | |LR_compact_without-terms_warnings-enabled|      |
-+--------------+-----------------+---------------+--------------------------------------------------+--------------------------------------------------+
-| **False**    | **False**       | **False**     | |BT_not-compact_without-terms_warnings-disabled| | |LR_not-compact_without-terms_warnings-disabled| |
-+--------------+-----------------+---------------+--------------------------------------------------+--------------------------------------------------+
++--------+--------+-----------+---------+---------------------------------------------------+
+| rankdir| compact| with_terms| warnings| sample image                                      |
++========+========+===========+=========+===================================================+
+| 'BT'   | True   | True      | True    | |BT_compact_with-terms_warnings-enabled|          |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | True      | True    | |LR_compact_with-terms_warnings-enabled|          |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | True   | True      | False   | |BT_compact_with-terms_warnings-disabled|         |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | True      | False   | |LR_compact_with-terms_warnings-disabled|         |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | True   | False     | True    | |BT_compact_without-terms_warnings-enabled|       |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | True   | False     | True    | |LR_compact_without-terms_warnings-enabled|       |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'BT'   | False  | False     | False   | |BT_not-compact_without-terms_warnings-disabled|  |
++--------+--------+-----------+---------+---------------------------------------------------+
+| 'LR'   | False  | False     | False   | |LR_not-compact_without-terms_warnings-disabled|  |
++--------+--------+-----------+---------+---------------------------------------------------+
 
 .. |BT_compact_with-terms_warnings-enabled| image:: /examples/BT_compact_with-terms_warnings-enabled.png
    :width: 40pt

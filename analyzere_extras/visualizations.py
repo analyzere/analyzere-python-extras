@@ -107,6 +107,10 @@ def _format_layer_terms(layer):
                      formatter=lambda x: '{}%'.format(x*100),
                      warning=lambda: layer.participation == 0.0)
 
+    # LossRank
+    formatter.append(required_attr='criterion', display_name='criterion')
+    formatter.append(required_attr='count', display_name='count')
+
     # FilterLayer
     formatter.append('filters', formatter=_format_filters)
 

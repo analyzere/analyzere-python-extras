@@ -112,6 +112,7 @@ def _format_layer_terms(layer):
 
     formatter.append('invert',
                      warning=lambda: (not layer.invert
+                                      and layer.type == 'FilterLayer'
                                       and len(layer.filters) == 0))
 
     # CatXL, AggXL, Generic

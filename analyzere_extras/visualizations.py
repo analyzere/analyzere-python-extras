@@ -184,28 +184,28 @@ class LayerViewDigraph(object):
     def _update_filename(self, filename=None):
         # build filename with format:
         #    '<lv_id>_<rankdir>_<[not-]compact>_<with[out]-terms>\
-        #    _<with[out]-warnings>.<format>'
+        #    _<with[out]-warnings><_depth->.<format>'
+        compact = 'compact' if self._compact else 'not-compact'
+        terms = 'with-terms' if self._with_terms else 'without-terms'
+        warnings = ('warnings-enabled' if self._warnings
+                    else 'warnings-disabled')
+        depth = 'depth-{}'.format(self._max_depth) if self._max_depth else ''
         self._filename = (filename if filename else
-                          '{}_{}_{}_{}_{}'.format(self._lv.id,
-                                                  self._rankdir,
-                                                  'compact'
-                                                  if self._compact
-                                                  else 'not-compact',
-                                                  'with-terms'
-                                                  if self._with_terms
-                                                  else 'without-terms',
-                                                  'warnings-enabled'
-                                                  if self._warnings
-                                                  else 'warnings-disabled'))
+                          '{}_{}_{}_{}_{}{}'.format(self._lv.id,
+                                                    self._rankdir,
+                                                    compact,
+                                                    terms,
+                                                    warnings,
+                                                    depth))
 
     def _generate_nodes(self, l, sequence, unique_nodes, edges,
-                        parent_hash=None, prefix=None, max_depth=None, current_depth=0):
+                        parent_hash=None, prefix=None,
+                        max_depth=None, current_depth=0):
 
         # hash the current node to see if it is unique
         node_hash = hashlib.md5((str(l)
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
-
 
         if (node_hash not in unique_nodes) or not self._compact:
             unique_nodes[node_hash] = next(sequence)
@@ -217,13 +217,15 @@ class LayerViewDigraph(object):
 
             sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
                                              edges, parent_hash=node_hash,
-                                             prefix=prefix, max_depth=max_depth,
+                                             prefix=prefix,
+                                             max_depth=max_depth,
                                              current_depth=current_depth+1)
             if max_depth is None or current_depth < max_depth:
-                for source in [self._generate_nodes(s, sequence,
-                                                    unique_nodes, edges,
-                                                    max_depth=max_depth,
-                                                    current_depth=current_depth+1)
+                for source in [self._generate_nodes(
+                        s, sequence,
+                        unique_nodes, edges,
+                        max_depth=max_depth,
+                        current_depth=current_depth+1)
                                for s in l.sources]:
                     if not (source, sink_hash) in edges:
                         self._graph.edge(source, sink_hash)
@@ -265,7 +267,8 @@ class LayerViewDigraph(object):
         return node_hash
 
     def __init__(self, lv, with_terms=True, compact=True,
-                 format='png', rankdir='BT', warnings=True, max_depth=None):
+                 format='png', rankdir='BT', warnings=True,
+                 max_depth=None):
         """Generate a Graphviz.Digraph for the given LayerView
 
         Optional parameters that control the visualization:
@@ -289,7 +292,7 @@ class LayerViewDigraph(object):
            warnings     highlight nodes with suspicious terms by coloring them
                         red (default=True).
 
-           max_depth    The maximum depth of the graph to process
+           max_depth    The maximum depth of the graph to process.
 
         """
         # sanity check on the input
@@ -302,6 +305,7 @@ class LayerViewDigraph(object):
         self._format = format
         self._compact = compact
         self._warnings = warnings
+        self._max_depth = max_depth
 
         # initialize the filename
         self._update_filename()
@@ -318,11 +322,12 @@ class LayerViewDigraph(object):
         # set of unique edges (prevents duplicates)
         edges = set()
 
-        self._generate_nodes(lv.layer, sequence, unique_nodes, edges, max_depth=max_depth)
+        self._generate_nodes(lv.layer, sequence, unique_nodes, edges,
+                             max_depth=max_depth)
 
     @staticmethod
     def from_id(lv_id, with_terms=True, compact=True,
-                format='png', rankdir='BT'):
+                format='png', rankdir='BT', max_depth=None):
         """Generate a LayerViewDigraph for the given LayerView Id
 
         Optional parameters:
@@ -349,7 +354,8 @@ class LayerViewDigraph(object):
         #       - analyzere.username
         #       - analyzere.password
         return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, compact,
-                                format=format, rankdir=rankdir)
+                                format=format, rankdir=rankdir,
+                                max_depth=max_depth)
 
     def render(self, filename=None, view=False, format=None, rankdir=None):
         """Render a LayerViewDigraph with the Graphviz engine

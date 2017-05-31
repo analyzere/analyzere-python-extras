@@ -199,11 +199,15 @@ class LayerViewDigraph(object):
                                                   else 'warnings-disabled'))
 
     def _generate_nodes(self, l, sequence, unique_nodes, edges,
-                        parent_hash=None, prefix=None):
+                        parent_hash=None, prefix=None, max_depth=None, current_depth=0):
+
         # hash the current node to see if it is unique
         node_hash = hashlib.md5((str(l)
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
+
+        if current_depth and current_depth >= max_depth:
+            return node_hash
 
         if (node_hash not in unique_nodes) or not self._compact:
             unique_nodes[node_hash] = next(sequence)
@@ -214,9 +218,12 @@ class LayerViewDigraph(object):
                       'Nested')
             sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
                                              edges, parent_hash=node_hash,
-                                             prefix=prefix)
+                                             prefix=prefix, max_depth=max_depth,
+                                             current_depth=current_depth+1)
             for source in [self._generate_nodes(s, sequence,
-                                                unique_nodes, edges)
+                                                unique_nodes, edges,
+                                                max_depth=max_depth,
+                                                current_depth=current_depth+1)
                            for s in l.sources]:
                 if not (source, sink_hash) in edges:
                     self._graph.edge(source, sink_hash)
@@ -258,7 +265,7 @@ class LayerViewDigraph(object):
         return node_hash
 
     def __init__(self, lv, with_terms=True, compact=True,
-                 format='png', rankdir='BT', warnings=True):
+                 format='png', rankdir='BT', warnings=True, max_depth=None):
         """Generate a Graphviz.Digraph for the given LayerView
 
         Optional parameters that control the visualization:
@@ -281,6 +288,8 @@ class LayerViewDigraph(object):
 
            warnings     highlight nodes with suspicious terms by coloring them
                         red (default=True).
+
+           max_depth    The maximum depth of the graph to process
 
         """
         # sanity check on the input
@@ -309,7 +318,7 @@ class LayerViewDigraph(object):
         # set of unique edges (prevents duplicates)
         edges = set()
 
-        self._generate_nodes(lv.layer, sequence, unique_nodes, edges)
+        self._generate_nodes(lv.layer, sequence, unique_nodes, edges, max_depth=max_depth)
 
     @staticmethod
     def from_id(lv_id, with_terms=True, compact=True,

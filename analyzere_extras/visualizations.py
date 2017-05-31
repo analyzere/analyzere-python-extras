@@ -206,8 +206,6 @@ class LayerViewDigraph(object):
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
 
-        if current_depth and current_depth >= max_depth:
-            return node_hash
 
         if (node_hash not in unique_nodes) or not self._compact:
             unique_nodes[node_hash] = next(sequence)
@@ -216,18 +214,20 @@ class LayerViewDigraph(object):
             prefix = ('"{}"\nNested'.format(_format_description(l.description))
                       if l.description else
                       'Nested')
+
             sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
                                              edges, parent_hash=node_hash,
                                              prefix=prefix, max_depth=max_depth,
                                              current_depth=current_depth+1)
-            for source in [self._generate_nodes(s, sequence,
-                                                unique_nodes, edges,
-                                                max_depth=max_depth,
-                                                current_depth=current_depth+1)
-                           for s in l.sources]:
-                if not (source, sink_hash) in edges:
-                    self._graph.edge(source, sink_hash)
-                    edges.add((source, sink_hash))
+            if max_depth is None or current_depth < max_depth:
+                for source in [self._generate_nodes(s, sequence,
+                                                    unique_nodes, edges,
+                                                    max_depth=max_depth,
+                                                    current_depth=current_depth+1)
+                               for s in l.sources]:
+                    if not (source, sink_hash) in edges:
+                        self._graph.edge(source, sink_hash)
+                        edges.add((source, sink_hash))
 
             return sink_hash
 

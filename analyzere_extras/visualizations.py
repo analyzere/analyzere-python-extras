@@ -189,7 +189,7 @@ class LayerViewDigraph(object):
         terms = 'with-terms' if self._with_terms else 'without-terms'
         warnings = ('warnings-enabled' if self._warnings
                     else 'warnings-disabled')
-        depth = 'depth-{}'.format(self._max_depth) if self._max_depth else ''
+        depth = '_depth-{}'.format(self._max_depth) if self._max_depth else ''
         self._filename = (filename if filename else
                           '{}_{}_{}_{}_{}{}'.format(self._lv.id,
                                                     self._rankdir,

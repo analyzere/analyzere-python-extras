@@ -166,14 +166,10 @@ Publishing
     git tag 0.1.0
     git push origin 0.1.0
 
-4. Register the package::
-
-    python setup.py register
-
-5. Package source and wheel distributions::
+4. Package source and wheel distributions::
 
     python setup.py sdist bdist_wheel
 
-6. Upload to PyPI with twine::
+5. Upload to PyPI with twine::
 
     twine upload dist/*

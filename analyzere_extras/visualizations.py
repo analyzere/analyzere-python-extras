@@ -216,10 +216,10 @@ class LayerViewDigraph(object):
                                                       depth,
                                                       src_limit))
 
-    def _generate_nodes(self, l, sequence, unique_nodes, edges,
-                        parent_hash=None, prefix=None,
-                        max_depth=None, current_depth=0,
-                        max_sources=None):
+    def _generate_nodes(self, l,
+                        parent_hash=None,
+                        prefix=None,
+                        current_depth=0):
 
         # default node attributes
         self._graph.attr('node', shape='box', style='filled',
@@ -230,32 +230,31 @@ class LayerViewDigraph(object):
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
 
-        if (node_hash not in unique_nodes) or not self._compact:
-            unique_nodes[node_hash] = next(sequence)
+        if (node_hash not in self.unique_nodes) or not self._compact:
+            self.unique_nodes[node_hash] = next(self.sequence)
 
         if l.type == 'NestedLayer':
-            prefix = ('"{}"\nNested'.format(_format_description(l.description))
-                      if l.description else
-                      'Nested')
+            prefix = ('"{}"\nNested'.format(
+                      _format_description(l.description))
+                      if l.description else 'Nested')
 
-            sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
-                                             edges, parent_hash=node_hash,
+            sink_hash = self._generate_nodes(l.sink,
+                                             parent_hash=node_hash,
                                              prefix=prefix,
-                                             max_depth=max_depth,
-                                             current_depth=current_depth,
-                                             max_sources=max_sources)
+                                             current_depth=current_depth)
 
-            if max_depth is None or current_depth < max_depth:
+            if self._max_depth is None or current_depth < self._max_depth:
                 # if we are enforcing a source limit, we will return early
                 # after creating a summary node
-                if max_sources is not None and len(l.sources) > max_sources:
+                if (self._max_sources is not None and
+                   len(l.sources) > self._max_sources):
                     sources_id = '{} sources'.format(sink_hash)
-                    if not(sources_id, sink_hash) in edges:
-                        edges.add((sources_id, sink_hash))
+                    if not(sources_id, sink_hash) in self.edges:
+                        self.edges.add((sources_id, sink_hash))
                         self._graph.node(sources_id,
                                          color=color_pallette[self.color_idx],
                                          label='{} sources'.format(
-                                             len(l.sources)))
+                                          len(l.sources)))
                         self._graph.edge(sources_id, sink_hash,
                                          color=color_pallette[self.color_idx])
 
@@ -266,18 +265,14 @@ class LayerViewDigraph(object):
                     if idx > 0 and self.color_mode == 'breadth':
                         self.color_idx = (self.color_idx + 1) % self.colors
                     source = self._generate_nodes(
-                        s, sequence,
-                        unique_nodes, edges,
-                        max_depth=max_depth,
-                        current_depth=current_depth+1,
-                        max_sources=max_sources)
+                        s, current_depth=current_depth+1)
                     # We have to reset the color to match the parent's color
                     if self.color_mode == 'depth':
                         self.color_idx = current_depth % self.colors
-                    if not (source, sink_hash) in edges:
+                    if not (source, sink_hash) in self.edges:
                         self._graph.edge(source, sink_hash,
                                          color=color_pallette[self.color_idx])
-                        edges.add((source, sink_hash))
+                        self.edges.add((source, sink_hash))
                     idx += 1
             return sink_hash
 
@@ -286,7 +281,7 @@ class LayerViewDigraph(object):
             name += l.type + ' '
             name += ('"{}"'.format(_format_description(l.description))
                      if l.description else
-                     '({})'.format(unique_nodes[node_hash]))
+                     '({})'.format(self.unique_nodes[node_hash]))
             terms, warning = _format_layer_terms(l)
             name += terms if self._with_terms else ''
             if self.color_mode == 'depth':
@@ -309,15 +304,15 @@ class LayerViewDigraph(object):
                 ls_name = '{} "{}"'.format(
                     ls.type, _format_description(ls.description))
                 ls_id = '{}{}'.format(ls.id,
-                                      ' ({})'.format(next(sequence))
+                                      ' ({})'.format(next(self.sequence))
                                       if not self._compact else '')
-                if not (ls_id, node_hash) in edges:
+                if not (ls_id, node_hash) in self.edges:
                     self._graph.node(ls_id, label=ls_name,
                                      color=color_pallette[self.color_idx],
                                      fillcolor='lightgrey')
                     self._graph.edge(ls_id, node_hash,
                                      color=color_pallette[self.color_idx])
-                    edges.add((ls_id, node_hash,))
+                    self.edges.add((ls_id, node_hash,))
                 idx += 1
         return node_hash
 
@@ -349,6 +344,7 @@ class LayerViewDigraph(object):
                         red (default=True).
 
            max_depth    The maximum depth of the graph to process.
+
            max_sources  The maximum number of Loss sources to graph in detail
                         for a single node.
 
@@ -381,14 +377,13 @@ class LayerViewDigraph(object):
                               graph_attr={'rankdir': rankdir})
         # now build the "tree" of nodes
         # sequencer for identifying 'ambiguous' nodes
-        sequence = itertools.count()
+        self.sequence = itertools.count()
         # hash map of unique nodes (prevents duplication)
-        unique_nodes = {}
+        self.unique_nodes = {}
         # set of unique edges (prevents duplicates)
-        edges = set()
+        self.edges = set()
 
-        self._generate_nodes(lv.layer, sequence, unique_nodes, edges,
-                             max_depth=max_depth, max_sources=max_sources)
+        self._generate_nodes(lv.layer)
 
     def render(self, filename=None, view=False, format=None, rankdir=None):
         """Render a LayerViewDigraph with the Graphviz engine
@@ -418,8 +413,10 @@ class LayerViewDigraph(object):
         if format:
             self._graph.format = format
             self._format = format
+
         # update the filename
         self._update_filename(filename)
+
         try:
             # protect against use cases when the default rendering tool
             # is not able to render the result

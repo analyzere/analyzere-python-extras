@@ -95,6 +95,32 @@ color_mode=['breadth'|'depth']
    :width: 40pt
 
 
+**Colorization:**
+
++------------------------------------------------+-------------------------------------------------------------------+
+| ``LayerViewDigraph(lv, ...)``                  |         ``render(...)``                                           |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| ``compact=`` | ``colors=`` | ``color_mode=``   |      ``rankdir='BT'``                                             |
++==============+=============+===================+===================================================================+
+| *True*       | **4**       | *breadth*         | |BT_compact_with-terms_warnings-disabled_4-colors-by-breadth|     |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| *True*       | **4**       | **depth**         | |BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth|   |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| **False**    | **4**       | *breadth*         | |BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth| |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| **False**    | **4**       | **depth**         | |BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth|   |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+
+.. |BT_compact_with-terms_warnings-disabled_4-colors-by-breadth| image:: /examples/BT_compact_with-terms_warnings-disabled_4-colors-by-breadth.png
+   :width: 40pt
+.. |BT_compact_with-terms_warnings-disabled_4-colors-by-depth| image:: /examples/BT_compact_with-terms_warnings-disabled_4-colors-by-depth.png
+   :width: 40pt
+.. |BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth| image:: /examples/BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth.png
+   :width: 40pt
+.. |BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth| image:: /examples/BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth.png
+   :width: 40pt
+
+
 Usage
 -----
 

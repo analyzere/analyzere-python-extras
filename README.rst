@@ -48,6 +48,19 @@ warnings=True|False
   - ``attachment`` or ``aggregate_attachment`` = unlimited
 
 
+max_depth=0
+  The maximum depth of the graph to process.  For very deeply nested structures this can reduce the size.  (default=0 == all levels).
+
+max_sources=0
+  The maximum number of Loss sources to graph in detail for a single node. (default=0 == all sources).
+
+colors=[1-12]
+  The number of colors to be used when coloring nodes and edges. (default=1 == black, max=12).
+
+color_mode=['breadth'|'depth']
+  The mode to use when applying colors. Options include: ['breadth', 'depth'], default: 'breadth'.
+
+
 **Sample LayerView Images:**
 
 +------------------------------------------------+-----------------------------------------------------------------------------------------------------+

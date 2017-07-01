@@ -473,7 +473,11 @@ def default_LayerViewDigraph_args():
                     '_rankdir': 'BT',
                     '_format': 'png',
                     '_compact': True,
-                    '_warnings': True}
+                    '_warnings': True,
+                    '_max_depth': 0,
+                    '_max_sources': 0,
+                    '_colors': 1,
+                    '_color_mode': 'breadth'}
     return default_args
 
 
@@ -485,17 +489,26 @@ class TestLayerViewDigraph:
         # merge the default arguments with the overrides
         args = default_LayerViewDigraph_args()
         args.update(overrides)
+        compact = 'compact' if args['_compact'] else 'not-compact'
+        terms = 'with-terms' if args['_with_terms'] else 'without-terms'
+        warnings = ('warnings-enabled' if args['_warnings']
+                    else 'warnings-disabled')
+        depth = ('' if args['_max_depth'] == 0 else
+                 '_depth-{}'.format(args['_max_depth']))
+        src_limit = ('' if args['_max_sources'] == 0 else
+                     '_srclimit-{}'.format(args['_max_sources']))
+        colors = ('' if args['_colors'] == 1 else
+                  '-{}-colors-by-{}'.format(args['_colors'],
+                                            args['_color_mode']))
         filename = (args['_filename'] if '_filename' in args else
-                    '{}_{}_{}_{}_{}'.format(lv_id,
-                                            args['_rankdir'],
-                                            'compact' if args['_compact']
-                                            else 'not-compact',
-                                            'with-terms'
-                                            if args['_with_terms']
-                                            else 'without-terms',
-                                            'warnings-enabled'
-                                            if args['_warnings']
-                                            else 'warnings-disabled'))
+                    '{}_{}_{}_{}_{}{}{}{}'.format(lv_id,
+                                                  args['_rankdir'],
+                                                  compact,
+                                                  terms,
+                                                  warnings,
+                                                  depth,
+                                                  src_limit,
+                                                  colors))
         return filename
 
     def _validate_args(self, lvg, **overrides):
@@ -512,6 +525,8 @@ class TestLayerViewDigraph:
         assert lvg._format == args['_format']
         assert lvg._compact is args['_compact']
         assert lvg._warnings is args['_warnings']
+        assert lvg._colors is args['_colors']
+        assert lvg._color_mode is args['_color_mode']
 
     def test_invalid_lv(self):
         m = {'something': 'here'}
@@ -570,6 +585,56 @@ class TestLayerViewDigraph:
 
         expected_filename = self._get_filename(layer_view.id,
                                                _format=override)
+        assert lvg._filename == expected_filename
+
+    def test_max_depth(self, layer_view):
+        override = 3
+        lvg = visualizations.LayerViewDigraph(layer_view, max_depth=override)
+        assert lvg._lv == layer_view
+        # verify 'max_depth' override used for graph construction
+        self._validate_args(lvg, _max_depth=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _max_depth=override)
+        assert lvg._filename == expected_filename
+
+    def test_max_sources(self, layer_view):
+        override = 3
+        lvg = visualizations.LayerViewDigraph(layer_view, max_sources=override)
+        assert lvg._lv == layer_view
+        # verify 'max_sources' override used for graph construction
+        self._validate_args(lvg, _max_sources=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _max_sources=override)
+        assert lvg._filename == expected_filename
+
+    def test_with_colors(self, layer_view):
+        override = 3
+        lvg = visualizations.LayerViewDigraph(layer_view, colors=override)
+        assert lvg._lv == layer_view
+        # verify 'colors' override used for graph construction
+        self._validate_args(lvg, _colors=override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _colors=override)
+        assert lvg._filename == expected_filename
+
+    def test_with_colors_and_color_mode_depth(self, layer_view):
+        colors_override = 3
+        mode_override = 'depth'
+        lvg = visualizations.LayerViewDigraph(layer_view,
+                                              colors=colors_override,
+                                              color_mode=mode_override)
+        assert lvg._lv == layer_view
+        # verify 'color' and 'color_mode' override used for graph construction
+        self._validate_args(lvg,
+                            _colors=colors_override,
+                            _color_mode=mode_override)
+
+        expected_filename = self._get_filename(layer_view.id,
+                                               _colors=colors_override,
+                                               _color_mode=mode_override)
         assert lvg._filename == expected_filename
 
     def test_render(self, layer_view):

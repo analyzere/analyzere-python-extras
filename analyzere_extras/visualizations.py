@@ -208,8 +208,8 @@ class LayerViewDigraph(object):
         depth = '_depth-{}'.format(self._max_depth) if self._max_depth else ''
         src_limit = ('_srclimit-{}'.format(self._max_sources)
                      if self._max_sources else '')
-        colors = ('-{}-colors-by-{}'.format(self.colors, self.color_mode)
-                  if self.colors > 1 else '')
+        colors = ('-{}-colors-by-{}'.format(self._colors, self._color_mode)
+                  if self._colors > 1 else '')
         self._filename = (filename if filename else
                           '{}_{}_{}_{}_{}{}{}{}'.format(self._lv.id,
                                                         self._rankdir,
@@ -256,26 +256,26 @@ class LayerViewDigraph(object):
                     if not(sources_id, sink_hash) in self.edges:
                         self.edges.add((sources_id, sink_hash))
                         self._graph.node(sources_id,
-                                         color=color_pallette[self.color_idx],
+                                         color=color_pallette[self._color_idx],
                                          label='{} sources'.format(
                                           len(l.sources)))
                         self._graph.edge(sources_id, sink_hash,
-                                         color=color_pallette[self.color_idx])
+                                         color=color_pallette[self._color_idx])
 
                     return sink_hash
 
                 idx = 0
                 for s in l.sources:
-                    if idx > 0 and self.color_mode == 'breadth':
-                        self.color_idx = (self.color_idx + 1) % self.colors
+                    if idx > 0 and self._color_mode == 'breadth':
+                        self._color_idx = (self._color_idx + 1) % self._colors
                     source = self._generate_nodes(
                         s, current_depth=current_depth+1)
                     # We have to reset the color to match the parent's color
-                    if self.color_mode == 'depth':
-                        self.color_idx = current_depth % self.colors
+                    if self._color_mode == 'depth':
+                        self._color_idx = current_depth % self._colors
                     if not (source, sink_hash) in self.edges:
                         self._graph.edge(source, sink_hash,
-                                         color=color_pallette[self.color_idx])
+                                         color=color_pallette[self._color_idx])
                         self.edges.add((source, sink_hash))
                     idx += 1
             return sink_hash
@@ -288,23 +288,23 @@ class LayerViewDigraph(object):
                      '({})'.format(self.unique_nodes[node_hash]))
             terms, warning = _format_layer_terms(l)
             name += terms if self._with_terms else ''
-            if self.color_mode == 'depth':
-                self.color_idx = current_depth % self.colors
+            if self._color_mode == 'depth':
+                self._color_idx = current_depth % self._colors
 
             # color nodes with 'warnings' as tomato iff configured
             self._graph.node(node_hash, label=name,
-                             color=color_pallette[self.color_idx],
+                             color=color_pallette[self._color_idx],
                              fillcolor='tomato' if warning and self._warnings
                              else 'white')
 
             # Now process LossSets
-            if self.color_mode == 'depth':
-                self.color_idx = (current_depth+1) % self.colors
+            if self._color_mode == 'depth':
+                self._color_idx = (current_depth+1) % self._colors
 
             idx = 0
             for ls in l.loss_sets:
-                if idx > 0 and self.color_mode == 'breadth':
-                    self.color_idx = (self.color_idx + 1) % self.colors
+                if idx > 0 and self._color_mode == 'breadth':
+                    self._color_idx = (self._color_idx + 1) % self._colors
                 ls_name = '{} "{}"'.format(
                     ls.type, _format_description(ls.description))
                 ls_id = '{}{}'.format(ls.id,
@@ -312,10 +312,10 @@ class LayerViewDigraph(object):
                                       if not self._compact else '')
                 if not (ls_id, node_hash) in self.edges:
                     self._graph.node(ls_id, label=ls_name,
-                                     color=color_pallette[self.color_idx],
+                                     color=color_pallette[self._color_idx],
                                      fillcolor='lightgrey')
                     self._graph.edge(ls_id, node_hash,
-                                     color=color_pallette[self.color_idx])
+                                     color=color_pallette[self._color_idx])
                     self.edges.add((ls_id, node_hash,))
                 idx += 1
         return node_hash
@@ -369,9 +369,9 @@ class LayerViewDigraph(object):
         self._warnings = warnings
         self._max_depth = max_depth
         self._max_sources = max_sources
-        self.colors = colors
-        self.color_idx = 0
-        self.color_mode = color_mode
+        self._colors = colors
+        self._color_idx = 0
+        self._color_mode = color_mode
 
         # initialize the filename
         self._update_filename()

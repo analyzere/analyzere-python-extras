@@ -13,7 +13,7 @@ with open(path.join(here, 'requirements', 'install.txt'),
 
 setup(
     name='analyzere_extras',
-    version='0.1.9',
+    version='0.1.10',
     description='Python extras to support visualization',
     long_description=readme,
     url='https://github.com/analyzere/analyzere-python-extras',

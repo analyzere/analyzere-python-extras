@@ -199,7 +199,8 @@ class LayerViewDigraph(object):
     def _update_filename(self, filename=None):
         # build filename with format:
         #    '<lv_id>_<rankdir>_<[not-]compact>_<with[out]-terms>\
-        #    _<with[out]-warnings><_depth->.<format>'
+        #    _<with[out]-warnings><_depth-><_srclimit-x>\
+        #    <y-colors-by-<depth|breadth>>.<format>'
         compact = 'compact' if self._compact else 'not-compact'
         terms = 'with-terms' if self._with_terms else 'without-terms'
         warnings = ('warnings-enabled' if self._warnings
@@ -207,14 +208,17 @@ class LayerViewDigraph(object):
         depth = '_depth-{}'.format(self._max_depth) if self._max_depth else ''
         src_limit = ('_srclimit-{}'.format(self._max_sources)
                      if self._max_sources else '')
+        colors = ('-{}-colors-by-{}'.format(self.colors, self.color_mode)
+                  if self.colors > 1 else '')
         self._filename = (filename if filename else
-                          '{}_{}_{}_{}_{}{}{}'.format(self._lv.id,
-                                                      self._rankdir,
-                                                      compact,
-                                                      terms,
-                                                      warnings,
-                                                      depth,
-                                                      src_limit))
+                          '{}_{}_{}_{}_{}{}{}{}'.format(self._lv.id,
+                                                        self._rankdir,
+                                                        compact,
+                                                        terms,
+                                                        warnings,
+                                                        depth,
+                                                        src_limit,
+                                                        colors))
 
     def _generate_nodes(self, l,
                         parent_hash=None,

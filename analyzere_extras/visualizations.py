@@ -389,6 +389,45 @@ class LayerViewDigraph(object):
 
         self._generate_nodes(lv.layer)
 
+    @staticmethod
+    def from_id(lv_id, with_terms=True, compact=True,
+                format='png', rankdir='BT',
+                max_depth=None, max_sources=None,
+                colors=1, color_mode='breadth'):
+        """Generate a LayerViewDigraph for the given LayerView Id
+        Optional parameters:
+           with_terms   specify that Layer terms are included in each
+                        node of the graph.
+           compact      controls if duplicate nodes should be omitted
+                        (default=True).
+           format       exposes the graphviz 'format' option which include
+                        'pdf', 'png', etc.
+           rankdir      exposes the graphviz 'rankdir' option that controls
+                        the orientation of the graph.  Options include
+                        'TB', 'LR', 'BT', 'RL', corresponding to directed
+                        graphs drawn from top to bottom, from left to right,
+                        from bottom to top, and from right to left,
+                        respectively.
+
+           max_depth    The maximum depth of the graph to process.
+
+           max_sources  The maximum number of Loss sources to graph in detail
+                        for a single node.
+
+           colors       The number of colors to be used when coloring edges.
+
+           color_mode   The mode to use when applying colors.
+                        Options include: ['breadth', 'depth']
+        """
+        # This will raise and exception if any of the following analyzere
+        # variables are not defined:
+        #       - analyzere.base_url
+        #       - analyzere.username
+        #       - analyzere.password
+        return LayerViewDigraph(LayerView.retrieve(lv_id), with_terms, compact,
+                                format=format, rankdir=rankdir,
+                                max_depth=max_depth, max_sources=max_sources)
+
     def render(self, filename=None, view=False, format=None, rankdir=None):
         """Render a LayerViewDigraph with the Graphviz engine
 

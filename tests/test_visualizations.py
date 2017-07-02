@@ -498,7 +498,7 @@ class TestLayerViewDigraph:
         src_limit = ('' if args['_max_sources'] == 0 else
                      '_srclimit-{}'.format(args['_max_sources']))
         colors = ('' if args['_colors'] == 1 else
-                  '-{}-colors-by-{}'.format(args['_colors'],
+                  '_{}-colors-by-{}'.format(args['_colors'],
                                             args['_color_mode']))
         filename = (args['_filename'] if '_filename' in args else
                     '{}_{}_{}_{}_{}{}{}{}'.format(lv_id,

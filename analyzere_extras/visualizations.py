@@ -208,7 +208,7 @@ class LayerViewDigraph(object):
         depth = '_depth-{}'.format(self._max_depth) if self._max_depth else ''
         src_limit = ('_srclimit-{}'.format(self._max_sources)
                      if self._max_sources else '')
-        colors = ('-{}-colors-by-{}'.format(self._colors, self._color_mode)
+        colors = ('_{}-colors-by-{}'.format(self._colors, self._color_mode)
                   if self._colors > 1 else '')
         self._filename = (filename if filename else
                           '{}_{}_{}_{}_{}{}{}{}'.format(self._lv.id,

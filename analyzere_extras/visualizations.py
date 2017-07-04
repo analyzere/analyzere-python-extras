@@ -13,6 +13,21 @@ except ImportError:
 from sys import float_info
 
 
+# 12 distinct colors for colorizing edges
+color_pallette = ['#000000',
+                  '#0265d8',
+                  '#d9c91b',
+                  '#b031b7',
+                  '#6ddc8f',
+                  '#ff479c',
+                  '#1d5f1c',
+                  '#eb0d55',
+                  '#a4c2ff',
+                  '#ec611a',
+                  '#ff99cc',
+                  '#ae2e00']
+
+
 def _format_description(description):
     """Clean the description of a node for display in Graphviz"""
     return description.replace('\'', '').encode('unicode_escape').decode()
@@ -184,7 +199,8 @@ class LayerViewDigraph(object):
     def _update_filename(self, filename=None):
         # build filename with format:
         #    '<lv_id>_<rankdir>_<[not-]compact>_<with[out]-terms>\
-        #    _<with[out]-warnings><_depth->.<format>'
+        #    _<with[out]-warnings><_depth-><_srclimit-x>\
+        #    <y-colors-by-<depth|breadth>>.<format>'
         compact = 'compact' if self._compact else 'not-compact'
         terms = 'with-terms' if self._with_terms else 'without-terms'
         warnings = ('warnings-enabled' if self._warnings
@@ -192,64 +208,76 @@ class LayerViewDigraph(object):
         depth = '_depth-{}'.format(self._max_depth) if self._max_depth else ''
         src_limit = ('_srclimit-{}'.format(self._max_sources)
                      if self._max_sources else '')
+        colors = ('_{}-colors-by-{}'.format(self._colors, self._color_mode)
+                  if self._colors > 1 else '')
         self._filename = (filename if filename else
-                          '{}_{}_{}_{}_{}{}{}'.format(self._lv.id,
-                                                      self._rankdir,
-                                                      compact,
-                                                      terms,
-                                                      warnings,
-                                                      depth,
-                                                      src_limit))
+                          '{}_{}_{}_{}_{}{}{}{}'.format(self._lv.id,
+                                                        self._rankdir,
+                                                        compact,
+                                                        terms,
+                                                        warnings,
+                                                        depth,
+                                                        src_limit,
+                                                        colors))
 
-    def _generate_nodes(self, l, sequence, unique_nodes, edges,
-                        parent_hash=None, prefix=None,
-                        max_depth=None, current_depth=0,
-                        max_sources=None):
+    def _generate_nodes(self, l,
+                        parent_hash=None,
+                        prefix=None,
+                        current_depth=0):
+
+        # default node attributes
+        self._graph.attr('node', shape='box', style='filled',
+                         fillcolor='white')
 
         # hash the current node to see if it is unique
         node_hash = hashlib.md5((str(l)
                                  + (parent_hash or ''))
                                 .encode('utf-8')).hexdigest()
 
-        if (node_hash not in unique_nodes) or not self._compact:
-            unique_nodes[node_hash] = next(sequence)
+        if (node_hash not in self.unique_nodes) or not self._compact:
+            self.unique_nodes[node_hash] = next(self.sequence)
 
         if l.type == 'NestedLayer':
-            prefix = ('"{}"\nNested'.format(_format_description(l.description))
-                      if l.description else
-                      'Nested')
+            prefix = ('"{}"\nNested'.format(
+                      _format_description(l.description))
+                      if l.description else 'Nested')
 
-            sink_hash = self._generate_nodes(l.sink, sequence, unique_nodes,
-                                             edges, parent_hash=node_hash,
+            sink_hash = self._generate_nodes(l.sink,
+                                             parent_hash=node_hash,
                                              prefix=prefix,
-                                             max_depth=max_depth,
-                                             current_depth=current_depth+1,
-                                             max_sources=max_sources)
+                                             current_depth=current_depth)
 
-            if max_depth is None or current_depth < max_depth:
+            if self._max_depth is None or current_depth < self._max_depth:
                 # if we are enforcing a source limit, we will return early
                 # after creating a summary node
-                if max_sources is not None and len(l.sources) > max_sources:
+                if (self._max_sources is not None and
+                   len(l.sources) > self._max_sources):
                     sources_id = '{} sources'.format(sink_hash)
-                    if not(sources_id, sink_hash) in edges:
-                        edges.add((sources_id, sink_hash))
+                    if not(sources_id, sink_hash) in self.edges:
+                        self.edges.add((sources_id, sink_hash))
                         self._graph.node(sources_id,
-                                         label='{} sources'.format(len(l.sources)))
-                        self._graph.edge(sources_id, sink_hash)
+                                         color=color_pallette[self._color_idx],
+                                         label='{} sources'.format(
+                                          len(l.sources)))
+                        self._graph.edge(sources_id, sink_hash,
+                                         color=color_pallette[self._color_idx])
 
                     return sink_hash
 
-                for source in [self._generate_nodes(
-                        s, sequence,
-                        unique_nodes, edges,
-                        max_depth=max_depth,
-                        current_depth=current_depth+1,
-                        max_sources=max_sources)
-                               for s in l.sources]:
-                    if not (source, sink_hash) in edges:
-                        self._graph.edge(source, sink_hash)
-                        edges.add((source, sink_hash))
-
+                idx = 0
+                for s in l.sources:
+                    if idx > 0 and self._color_mode == 'breadth':
+                        self._color_idx = (self._color_idx + 1) % self._colors
+                    source = self._generate_nodes(
+                        s, current_depth=current_depth+1)
+                    # We have to reset the color to match the parent's color
+                    if self._color_mode == 'depth':
+                        self._color_idx = current_depth % self._colors
+                    if not (source, sink_hash) in self.edges:
+                        self._graph.edge(source, sink_hash,
+                                         color=color_pallette[self._color_idx])
+                        self.edges.add((source, sink_hash))
+                    idx += 1
             return sink_hash
 
         else:
@@ -257,37 +285,45 @@ class LayerViewDigraph(object):
             name += l.type + ' '
             name += ('"{}"'.format(_format_description(l.description))
                      if l.description else
-                     '({})'.format(unique_nodes[node_hash]))
+                     '({})'.format(self.unique_nodes[node_hash]))
             terms, warning = _format_layer_terms(l)
             name += terms if self._with_terms else ''
+            if self._color_mode == 'depth':
+                self._color_idx = current_depth % self._colors
 
-            self._graph.attr('node', shape='box',
-                             style='filled',
-                             fillcolor='white',
-                             color='black')
-            # color nodes with 'warnings' as red iff configured
-            if warning and self._warnings:
-                self._graph.attr('node', color='tomato', fillcolor='tomato')
+            # color nodes with 'warnings' as tomato iff configured
+            self._graph.node(node_hash, label=name,
+                             color=color_pallette[self._color_idx],
+                             fillcolor='tomato' if warning and self._warnings
+                             else 'white')
 
-            self._graph.node(node_hash, label=name)
+            # Now process LossSets
+            if self._color_mode == 'depth':
+                self._color_idx = (current_depth+1) % self._colors
+
+            idx = 0
             for ls in l.loss_sets:
+                if idx > 0 and self._color_mode == 'breadth':
+                    self._color_idx = (self._color_idx + 1) % self._colors
                 ls_name = '{} "{}"'.format(
                     ls.type, _format_description(ls.description))
                 ls_id = '{}{}'.format(ls.id,
-                                      ' ({})'.format(next(sequence))
+                                      ' ({})'.format(next(self.sequence))
                                       if not self._compact else '')
-                if not (ls_id, node_hash) in edges:
-                    self._graph.attr('node',
-                                     shape='box', color='lightgrey',
-                                     style='filled', fillcolor='lightgrey')
-                    self._graph.node(ls_id, label=ls_name)
-                    self._graph.edge(ls_id, node_hash)
-                    edges.add((ls_id, node_hash))
+                if not (ls_id, node_hash) in self.edges:
+                    self._graph.node(ls_id, label=ls_name,
+                                     color=color_pallette[self._color_idx],
+                                     fillcolor='lightgrey')
+                    self._graph.edge(ls_id, node_hash,
+                                     color=color_pallette[self._color_idx])
+                    self.edges.add((ls_id, node_hash,))
+                idx += 1
         return node_hash
 
     def __init__(self, lv, with_terms=True, compact=True,
                  format='png', rankdir='BT', warnings=True,
-                 max_depth=None, max_sources=None):
+                 max_depth=None, max_sources=None, colors=1,
+                 color_mode='breadth'):
         """Generate a Graphviz.Digraph for the given LayerView
 
         Optional parameters that control the visualization:
@@ -315,6 +351,11 @@ class LayerViewDigraph(object):
 
            max_sources  The maximum number of Loss sources to graph in detail
                         for a single node.
+
+           colors       The number of colors to be used when coloring edges.
+
+           color_mode   The mode to use when applying colors.
+                        Options include: ['breadth', 'depth']
         """
         # sanity check on the input
         if not isinstance(lv, LayerView):
@@ -328,48 +369,55 @@ class LayerViewDigraph(object):
         self._warnings = warnings
         self._max_depth = max_depth
         self._max_sources = max_sources
+        self._colors = colors
+        self._color_idx = 0
+        self._color_mode = color_mode
 
         # initialize the filename
         self._update_filename()
 
         # defaults for the Digraph, overridden by plot()
         self._graph = Digraph(format=format,
-                              graph_attr={'rankdir': rankdir,
-                                          'size': '400,400'})
+                              graph_attr={'rankdir': rankdir})
         # now build the "tree" of nodes
         # sequencer for identifying 'ambiguous' nodes
-        sequence = itertools.count()
+        self.sequence = itertools.count()
         # hash map of unique nodes (prevents duplication)
-        unique_nodes = {}
+        self.unique_nodes = {}
         # set of unique edges (prevents duplicates)
-        edges = set()
+        self.edges = set()
 
-        self._generate_nodes(lv.layer, sequence, unique_nodes, edges,
-                             max_depth=max_depth, max_sources=max_sources)
+        self._generate_nodes(lv.layer)
 
     @staticmethod
     def from_id(lv_id, with_terms=True, compact=True,
                 format='png', rankdir='BT',
-                max_depth=None, max_sources=None):
+                max_depth=None, max_sources=None,
+                colors=1, color_mode='breadth'):
         """Generate a LayerViewDigraph for the given LayerView Id
-
         Optional parameters:
-
            with_terms   specify that Layer terms are included in each
                         node of the graph.
-
            compact      controls if duplicate nodes should be omitted
                         (default=True).
-
            format       exposes the graphviz 'format' option which include
                         'pdf', 'png', etc.
-
            rankdir      exposes the graphviz 'rankdir' option that controls
                         the orientation of the graph.  Options include
                         'TB', 'LR', 'BT', 'RL', corresponding to directed
                         graphs drawn from top to bottom, from left to right,
                         from bottom to top, and from right to left,
                         respectively.
+
+           max_depth    The maximum depth of the graph to process.
+
+           max_sources  The maximum number of Loss sources to graph in detail
+                        for a single node.
+
+           colors       The number of colors to be used when coloring edges.
+
+           color_mode   The mode to use when applying colors.
+                        Options include: ['breadth', 'depth']
         """
         # This will raise and exception if any of the following analyzere
         # variables are not defined:

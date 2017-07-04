@@ -48,6 +48,19 @@ warnings=True|False
   - ``attachment`` or ``aggregate_attachment`` = unlimited
 
 
+max_depth=0
+  The maximum depth of the graph to process.  For very deeply nested structures this can reduce the size.  (default=0 == all levels).
+
+max_sources=0
+  The maximum number of Loss sources to graph in detail for a single node. (default=0 == all sources).
+
+colors=[1-12]
+  The number of colors to be used when coloring nodes and edges. (default=1 == black, max=12).
+
+color_mode=['breadth'|'depth']
+  The mode to use when applying colors. Options include: ['breadth', 'depth'], default: 'breadth'.
+
+
 **Sample LayerView Images:**
 
 +------------------------------------------------+-----------------------------------------------------------------------------------------------------+
@@ -79,6 +92,32 @@ warnings=True|False
 .. |BT_not-compact_without-terms_warnings-disabled| image:: /examples/BT_not-compact_without-terms_warnings-disabled.png
    :width: 40pt
 .. |LR_not-compact_without-terms_warnings-disabled| image:: /examples/LR_not-compact_without-terms_warnings-disabled.png
+   :width: 40pt
+
+
+**Colorization:**
+
++------------------------------------------------+-------------------------------------------------------------------+
+| ``LayerViewDigraph(lv, ...)``                  |         ``render(...)``                                           |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| ``compact=`` | ``colors=`` | ``color_mode=``   |      ``rankdir='BT'``                                             |
++==============+=============+===================+===================================================================+
+| *True*       | **4**       | *breadth*         | |BT_compact_with-terms_warnings-disabled_4-colors-by-breadth|     |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| *True*       | **4**       | **depth**         | |BT_compact_with-terms_warnings-disabled_4-colors-by-depth|       |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| **False**    | **4**       | *breadth*         | |BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth| |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+| **False**    | **4**       | **depth**         | |BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth|   |
++--------------+-------------+-------------------+-------------------------------------------------------------------+
+
+.. |BT_compact_with-terms_warnings-disabled_4-colors-by-breadth| image:: /examples/BT_compact_with-terms_warnings-disabled_4-colors-by-breadth.png
+   :width: 40pt
+.. |BT_compact_with-terms_warnings-disabled_4-colors-by-depth| image:: /examples/BT_compact_with-terms_warnings-disabled_4-colors-by-depth.png
+   :width: 40pt
+.. |BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth| image:: /examples/BT_not-compact_with-terms_warnings-disabled_4-colors-by-breadth.png
+   :width: 40pt
+.. |BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth| image:: /examples/BT_not-compact_with-terms_warnings-disabled_4-colors-by-depth.png
    :width: 40pt
 
 

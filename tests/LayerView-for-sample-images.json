@@ -1,0 +1,132 @@
+# NOTE: This is NOT valid json that could be used to POST a LayerView.  The json below represents the 
+# most compact (minimilistic) LayerView definition that will work with 'convert_to_analyzere_object'./
+# The LayerView definition below was used to generate the Sample graphs for the README.rst in the "analyzere-python-extras" 
+# github repo: https://github.com/analyzere/analyzere-python-extras
+#
+content = {
+    'id': '0003c7e1-6e7a-3ef7-9335-ecb956bb4388',
+    'analysis_profile': {
+        'ref_id': '8234647d-2a8b-4557-8431-fe37dcfe61e3'
+    },
+    'layer': {
+        '_type': 'NestedLayer',
+        'description': '',
+        'meta_data': {},
+        'sink': {'_type': 'CatXL',
+                 'description': 'NA All Perils 10x12 (EQ Loaded)',
+                 'loss_sets': [],
+                 'attachment': {'value': 12000000.0, 'currency': 'USD'},
+                 'franchise': {'value': 0.0, 'currency': 'USD'},
+                 'limit': {'value': 10000000.0, 'currency': 'USD'},
+                 'nth': 1,
+                 'reinstatements': [],
+                 'participation': 1.0},
+        'sources': [
+            # branch 1
+            {'_type': 'NestedLayer',
+             'description': 'US_EQ loaded by 1.2',
+             'sink': {'_type': 'FilterLayer',
+                      'description': '',
+                      'loss_sets': [],
+                      'filters': [],
+                      'invert': True},
+             'sources': [
+                    {'_type': 'NestedLayer',
+                     'description': '',
+                     'sink': {'_type': 'QuotaShare',
+                              'description': '',
+                              'loss_sets': [],
+                              'event_limit': {'value': 1.7976931348623157e+308, 'currency': 'USD'},
+                              'participation': 1.2
+                        },
+                        'sources': [
+                            {'_type': 'FilterLayer',
+                             'description': 'US EQ',
+                             'loss_sets': [{'_type': 'ELTLossSet',
+                                            'description': 'Acme Insurance NA All Perils',
+                                            'id': 'e60a747e-0556-41ce-9ab9-2102f629f559',
+                                            'loss_type': 'LossGross'}
+                                          ],
+                             'filters': [{"_type": "AnyOfFilter",
+                                          "name": "US_EQ",
+                                          "invert": False}
+                                        ],
+                                'invert': False
+                            }
+                        ]
+                    }
+                ]
+            },
+            # branch 2
+            {'_type': 'NestedLayer',
+             'description': 'Canada_EQ loaded by 0.9',
+             'sink': {'_type': 'FilterLayer',
+                      'description': '',
+                      'loss_sets': [],
+                      'filters': [],
+                      'invert': True},
+
+             'sources': [
+                    {'_type': 'NestedLayer',
+                     'description': '',
+                     'sink': {'_type': 'QuotaShare',
+                              'description': '',
+                              'loss_sets': [],
+                              'event_limit': {'value': 1.7976931348623157e+308, 'currency': 'USD'},
+                              'participation': 0.9},
+                     'sources': [
+                            {'_type': 'FilterLayer',
+                             'description': 'Canada_EQ',
+                             'loss_sets': [{'_type': 'ELTLossSet',
+                                            'description': 'Acme Insurance NA All Perils',
+                                            'id': 'e60a747e-0556-41ce-9ab9-2102f629f559',
+                                            'loss_type': 'LossGross'}
+                                          ],
+                                'filters': [{"_type": "AnyOfFilter",
+                                             "name": "Canada EQ",
+                                             "invert": False,}
+                                           ],
+                                'invert': False
+                            }
+                        ]
+                    }
+                ]
+            },
+            # branch 3
+            {'_type': 'NestedLayer',
+             'description': 'non-EQ',
+             'sink': {'_type': 'FilterLayer',
+                      'description': '',
+                      'loss_sets': [],
+                      'invert': True},
+             'sources': [
+                    {'_type': 'NestedLayer',
+                     'description': '',
+                     'sink': {'_type': 'QuotaShare',
+                              'description': '',
+                              'loss_sets': [],
+                              'event_limit': {'value': 1.7976931348623157e+308, 'currency': 'USD'},
+                              'participation': 0.0
+                        },
+                        'sources': [
+                            {'_type': 'FilterLayer',
+                             'description': 'Non EQ Losses',
+                             'loss_sets': [{'_type': 'ELTLossSet',
+                                            'description': 'Acme Insurance NA_All_Perils',
+                                            'id': 'e60a747e-0556-41ce-9ab9-2102f629f559',
+                                            'loss_type': 'LossGross'}
+                                          ],
+                             'filters': [{"_type": "AnyOfFilter",
+                                          "name": "'US_EQ', 'Canada_EQ'",
+                                          "invert": False,}
+                                        ],
+                             'invert': True
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    'target_currency': 'USD',
+}

@@ -3,7 +3,6 @@ import csv
 from collections import defaultdict
 
 from analyzere import (
-    AnalysisProfile,
     LossSet,
     Distribution,
     Layer,
@@ -14,16 +13,19 @@ from analyzere import (
 # Analogous Event Scenario Loss Set. This class is designed to take a set
 # of loss sets and a list of Event IDs and combine them into a single loss
 # set for doing realistic disaster scenario type analysis.
+
+
 class AnalogousEventLossSet(LossSet):
+
     _collection_name = 'loss_sets'
 
     def __init__(self,
-        analysis_profile='',
-        load=1.0,
-        source_events=[],
-        sources=[],
-        occurrence_probability=1.0,
-        **kwargs):
+                 analysis_profile='',
+                 load=1.0,
+                 source_events=[],
+                 sources=[],
+                 occurrence_probability=1.0,
+                 **kwargs):
 
         self.analysis_profile = analysis_profile
         self.source_events = source_events
@@ -35,7 +37,6 @@ class AnalogousEventLossSet(LossSet):
             type='ParametricLossSet',
             **kwargs
         )
-
 
     def _retrieve_loss_data(self):
         loss_data = {}
@@ -64,7 +65,6 @@ class AnalogousEventLossSet(LossSet):
 
         self._loss_data = loss_data
 
-
     def _construct_severity_distribution(self):
         self._severity_distr = 'Probability,Loss\n'
         event_probability = 1.0/len(self.source_events)
@@ -92,11 +92,11 @@ class AnalogousEventLossSet(LossSet):
             self._severity_distr += str(value_probabilities[key]) + ',' \
                 + str(key) + '\n'
 
-
     def _upload_severity_distribution(self):
         data_hash = hashlib.md5(self._severity_distr.encode()).hexdigest()
+
         severity_description = 'ARe-Python-Extras AnalogousEventLossSetELS ' \
-           + 'Generated Resource: ' + data_hash
+            + 'Generated Resource: ' + data_hash
 
         distribution_search = Distribution.list(search=severity_description)
         # Check if severity distribution has been created on the server.
@@ -110,10 +110,10 @@ class AnalogousEventLossSet(LossSet):
             severity_distr.upload_data(self._severity_distr)
             self.severity = severity_distr
 
-
     def _upload_frequency_distribution(self):
         freq_description = 'ARe-Python-Extras AnalogousEventLossSetELS ' \
-           + 'Generated Resource: Frequency ' + str(self.occurrence_probability)
+           + 'Generated Resource: Frequency ' \
+           + str(self.occurrence_probability)
 
         distribution_search = Distribution.list(search=freq_description)
         if len(distribution_search) > 0:
@@ -127,10 +127,10 @@ class AnalogousEventLossSet(LossSet):
             ).save()
             self.frequency = freq_distr
 
-
     def _upload_seasonality_distribution(self):
-        seasonality_description = 'ARe-Python-Extras AnalogousEventLossSetELS ' \
-           + 'Generated Resource: Seasonality 0.0'
+        seasonality_description = \
+            'ARe-Python-Extras AnalogousEventLossSetELS ' \
+            + 'Generated Resource: Seasonality 0.0'
 
         distribution_search = Distribution.list(search=seasonality_description)
         if len(distribution_search) > 0:
@@ -143,19 +143,19 @@ class AnalogousEventLossSet(LossSet):
             ).save()
             self.seasonality = seasonality_distr
 
-
     def save(self):
         # Collect keys to retain on the type after saving. Otherwise this
         # information is lost by the super class's save method
         keys_to_retain = ['analysis_profile', 'source_events', 'sources',
-            'load', 'occurrence_probability']
+                          'load', 'occurrence_probability']
         values_to_retain = {key: self.__dict__[key] for key in keys_to_retain}
 
         # Adding the above information to loss set's meta_data so that it is
         # retrievable at a later date.
         self.meta_data = {}
         self.meta_data['analysis_profile'] = self.analysis_profile.id
-        self.meta_data['source_events'] = ','.join(map(str, self.source_events))
+        self.meta_data['source_events'] = \
+            ','.join(map(str, self.source_events))
         self.meta_data['sources'] = \
             ','.join([source.id for source in self.sources])
         self.meta_data['load'] = self.load

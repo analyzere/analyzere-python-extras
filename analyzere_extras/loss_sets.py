@@ -31,11 +31,11 @@ class AnalogousEventLossSet(LossSet):
         self.load = load
         self.occurrence_probability = occurrence_probability
 
-        return super().__init__(
+        return super(AnalogousEventLossSet, self).__init__(
             type='ParametricLossSet',
             **kwargs
         )
-        
+
 
     def _retrieve_loss_data(self):
         loss_data = {}
@@ -167,7 +167,7 @@ class AnalogousEventLossSet(LossSet):
         self._upload_severity_distribution()
         self._upload_frequency_distribution()
         self._upload_seasonality_distribution()
-        super().save()
+        super(AnalogousEventLossSet, self).save()
 
         # Merging the retained values back into the class.
         self.__dict__.update(values_to_retain)

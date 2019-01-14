@@ -67,7 +67,7 @@ class SetBaseUrl(object):
         analyzere.base_url = 'https://api'
 
     def teardown_method(self, _):
-        analyzere.base_url = ''
+        analyzere.base_url = 'http://localhost:8000/'
 
 class TestAnalogousEventLossSet(SetBaseUrl):
     def test_null_construction(self):

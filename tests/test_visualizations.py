@@ -787,7 +787,7 @@ class TestLayerViewDigraph:
 
     def test_from_id(self):
         """Requests by Id don't work unless you have defined the following
-        analyzere varialbes, and a connecton can be established
+        analyzere variables, and a connecton can be established
            - analyzere.base_url
            - analyzere.username
            - analyzere.password

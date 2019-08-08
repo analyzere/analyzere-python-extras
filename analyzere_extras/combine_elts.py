@@ -4,10 +4,12 @@ import multiprocessing
 import ssl
 import certifi
 import csv
+import warnings
 
 from uuid import UUID
 from analyzere import (
     Portfolio,
+    PortfolioView,
     Layer,
     LayerView,
     LossSet,
@@ -49,6 +51,7 @@ class ELTCombiner():
 
     def combine_elts_from_resources(
             self, uuid_list, catalog_id,
+            uuid_type='all',
             description='analyzere-python-extras: Combined ELT'):
         """Combine ELTs from multiple resources into one ELT.
 
@@ -60,7 +63,17 @@ class ELTCombiner():
                         Any non-ELT LossSets found will be ignored.
 
            catalog_id   The UUID of the EventCatalog that corresponds to the
-                        resources in uuid_list
+                        resources in uuid_list.
+
+           uuid_type    Specifies what types of uuids are provided in
+                        uuid_list.
+                        Valid options:
+                        - all
+                        - Layer
+                        - LayerView
+                        - Portfolio
+                        - PortfolioView
+                        - LossSet
 
            description  A description to be used for the combined loss set.
         """
@@ -68,21 +81,128 @@ class ELTCombiner():
         self._description = description
         self._catalog = EventCatalog.retrieve(catalog_id)
 
-        for uuid in uuid_list:
-            self._process_uuid(uuid)
+        if uuid_type == 'Layer':
+            for uuid in uuid_list:
+                self._process_layer_uuid(uuid)
+
+        elif uuid_type == 'LayerView':
+            for uuid in uuid_list:
+                self._process_layer_view_uuid(uuid)
+
+        elif uuid_type == 'Portfolio':
+            for uuid in uuid_list:
+                self._process_portfolio_uuid(uuid)
+
+        elif uuid_type == 'PortfolioView':
+            for uuid in uuid_list:
+                self._process_portfolio_view_uuid(uuid)
+
+        elif uuid_type == 'LossSet':
+            for uuid in uuid_list:
+                self._process_loss_set_uuid(uuid)
+
+        else:
+            for uuid in uuid_list:
+                self._process_uuid(uuid)
 
         return self._combine_elts()
 
-    def _process_uuid(self, uuid):
-        """Validates uuid as a UUID, and adds ELTs for that UUID to
+    def _process_layer_uuid(self, uuid):
+        """Validates uuid as a Layer UUID, and adds ELTs for that UUID to
         self._elt_loss_sets
+        """
+        # Validate UUID - if invalid, let error bubble up
+        valid_uuid = UUID(uuid, version=4)
 
-        Accepts Portfolio, Layer, LayerView, and LossSet UUIDs.
+        layer = None
+
+        try:
+            layer = Layer.retrieve(valid_uuid)
+        except:
+            raise ValueError(
+                "UUID '{}' is not a Layer.".format(valid_uuid))
+
+        self._add_layer_elts(layer)
+
+    def _process_layer_view_uuid(self, uuid):
+        """Validates uuid as a LayerView UUID, and adds ELTs for that UUID to
+        self._elt_loss_sets
+        """
+        # Validate UUID - if invalid, let error bubble up
+        valid_uuid = UUID(uuid, version=4)
+
+        layer_view = None
+
+        try:
+            layer_view = LayerView.retrieve(valid_uuid)
+        except:
+            raise ValueError(
+                "UUID '{}' is not a LayerView.".format(valid_uuid))
+
+        self._add_layer_view_elts(layer_view)
+
+    def _process_portfolio_uuid(self, uuid):
+        """Validates uuid as a Portfolio UUID, and adds ELTs for that UUID to
+        self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
         valid_uuid = UUID(uuid, version=4)
 
         portfolio = None
+
+        try:
+            portfolio = Portfolio.retrieve(valid_uuid)
+        except:
+            raise ValueError(
+                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+
+        self._add_portfolio_elts(portfolio)
+
+    def _process_portfolio_view_uuid(self, uuid):
+        """Validates uuid as a PortfolioView UUID, and adds ELTs for that UUID to
+        self._elt_loss_sets
+        """
+        # Validate UUID - if invalid, let error bubble up
+        valid_uuid = UUID(uuid, version=4)
+
+        portfolio_view = None
+
+        try:
+            portfolio_view = PortfolioView.retrieve(valid_uuid)
+        except:
+            raise ValueError(
+                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+
+        self._add_portfolio_view_elts(portfolio_view)
+
+    def _process_loss_set_uuid(self, uuid):
+        """Validates uuid as a LossSet UUID, and adds ELTs for that UUID to
+        self._elt_loss_sets
+        """
+        # Validate UUID - if invalid, let error bubble up
+        valid_uuid = UUID(uuid, version=4)
+
+        loss_set = None
+
+        try:
+            loss_set = LossSet.retrieve(valid_uuid)
+        except:
+            raise ValueError(
+                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+
+        self._add_loss_set_elts(loss_set)
+
+    def _process_uuid(self, uuid):
+        """Validates uuid as a UUID, and adds ELTs for that UUID to
+        self._elt_loss_sets
+
+        Accepts Portfolio, PortfolioView, Layer, LayerView, and LossSet UUIDs.
+        """
+        # Validate UUID - if invalid, let error bubble up
+        valid_uuid = UUID(uuid, version=4)
+
+        portfolio = None
+        portfolio_view = None
         layer = None
         layer_view = None
         loss_set = None
@@ -94,13 +214,18 @@ class ELTCombiner():
                 layer = Layer.retrieve(valid_uuid)
             except:
                 try:
-                    layer_view = LayerView.retrieve(valid_uuid)
+                    loss_set = LossSet.retrieve(valid_uuid)
                 except:
                     try:
-                        loss_set = LossSet.retrieve(valid_uuid)
+                        portfolio_view = PortfolioView.retrieve(valid_uuid)
                     except:
-                        print('Error: UUID {} is not a Portfolio, Layer, '
-                              'LayerView, or LossSet.'.format(valid_uuid))
+                        try:
+                            layer_view = LayerView.retrieve(valid_uuid)
+                        except:
+                            raise ValueError(
+                                "UUID '{}' is not a Portfolio, PortfolioView, "
+                                "Layer, LayerView, or LossSet.".format(
+                                    valid_uuid))
 
         if portfolio is not None:
             self._add_portfolio_elts(portfolio)
@@ -108,11 +233,14 @@ class ELTCombiner():
         elif layer is not None:
             self._add_layer_elts(layer)
 
-        elif layer_view is not None:
-            self._add_layer_view_elts(layer_view)
-
         elif loss_set is not None:
             self._add_loss_set_elt(loss_set)
+
+        elif portfolio_view is not None:
+            self._add_portfolio_view_elts(portfolio_view)
+
+        elif layer_view is not None:
+            self._add_layer_view_elts(layer_view)
 
     def _combine_elts(self):
         """Downloads the ELTs in self._elt_loss_sets (a list of ELTLossSet ids)
@@ -171,9 +299,8 @@ class ELTCombiner():
             loss_type='LossGross',
             currency='USD',
             event_catalogs=[self._catalog]
-        )
+        ).save()
 
-        combined_loss_set = combined_loss_set.save()
         combined_loss_set.upload_data(combined_elt_data)
         print('Combined ELT LossSet Id: {}'.format(combined_loss_set.id))
         return combined_loss_set
@@ -186,9 +313,36 @@ class ELTCombiner():
                 if loss_set.type == 'ELTLossSet':
                     self._elt_loss_sets.append(loss_set.id)
                 else:
-                    print('Warning: Portfolio {} contains non-ELT LossSet {}. '
-                          'Non-ELT LossSets are ignored.'.format(
-                              portfolio.id, loss_set.id))
+                    warnings.warn('Portfolio {} contains non-ELT LossSet {}. '
+                                  'Non-ELT LossSets are ignored.'.format(
+                                      portfolio.id, loss_set.id))
+
+    def _add_portfolio_view_elts(self, portfolio_view):
+        """Adds ELTs from layers in portfolio view to self._elt_loss_sets.
+        """
+        if hasattr(portfolio_view, 'portfolio') and \
+                portfolio_view.portfolio is not None:
+            for layer in portfolio_view.portfolio.layers:
+                for loss_set in layer.loss_sets:
+                    if loss_set.type == 'ELTLossSet':
+                        self._elt_loss_sets.append(loss_set.id)
+                    else:
+                        warnings.warn(
+                            'PortfolioView {} contains non-ELT LossSet '
+                            '{}. Non-ELT LossSets are ignored.'.format(
+                                  portfolio_view.id, loss_set.id))
+
+        if hasattr(portfolio_view, 'layer_views') and \
+                portfolio_view.layer_views is not None:
+            for layer_view in portfolio_view.layer_views:
+                for loss_set in layer_view.layer.loss_sets:
+                    if loss_set.type == 'ELTLossSet':
+                        self._elt_loss_sets.append(loss_set.id)
+                    else:
+                        warnings.warn(
+                            'PortfolioView {} contains non-ELT LossSet '
+                            '{}. Non-ELT LossSets are ignored.'.format(
+                                  portfolio_view.id, loss_set.id))
 
     def _add_layer_elts(self, layer):
         """Adds ELTs from layer to self._elt_loss_sets.
@@ -197,9 +351,9 @@ class ELTCombiner():
             if loss_set.type == 'ELTLossSet':
                 self._elt_loss_sets.append(loss_set.id)
             else:
-                print('Warning: Layer {} contains non-ELT LossSet {}. '
-                      'Non-ELT LossSets are ignored.'.format(
-                          layer.id, loss_set.id))
+                warnings.warn('Layer {} contains non-ELT LossSet {}. '
+                              'Non-ELT LossSets are ignored.'.format(
+                                  layer.id, loss_set.id))
 
     def _add_layer_view_elts(self, layer_view):
         """Adds ELTs from layer in layer_view to self._elt_loss_sets.
@@ -208,9 +362,10 @@ class ELTCombiner():
             if loss_set.type == 'ELTLossSet':
                 self._elt_loss_sets.append(loss_set.id)
             else:
-                print('Warning: LayerView {} contains non-ELT LossSet {}. '
-                      'Non-ELT LossSets are ignored.'.format(layer_view.id,
-                                                             loss_set.id))
+                warnings.warn(
+                    'LayerView {} contains non-ELT LossSet {}. '
+                    'Non-ELT LossSets are ignored.'.format(
+                        layer_view.id, loss_set.id))
 
     def _add_loss_set_elt(self, loss_set):
         """Adds loss_set elt to self._elt_loss_sets.
@@ -218,5 +373,6 @@ class ELTCombiner():
         if loss_set.type == 'ELTLossSet':
             self._elt_loss_sets.append(loss_set.id)
         else:
-            print('Warning: LossSet {} is not an ELT LossSet. '
-                  'Non-ELT LossSets are ignored.'.format(loss_set.id))
+            warnings.warn(
+                'LossSet {} is not an ELT LossSet. '
+                'Non-ELT LossSets are ignored.'.format(loss_set.id))

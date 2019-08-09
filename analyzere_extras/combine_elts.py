@@ -291,6 +291,7 @@ class ELTCombiner():
                     eventid, loss, stdevi, stdevc, expval]))
 
         combined_elt_data = '\n'.join(combined_elt_data)
+        combined_elt_data += '\n'
 
         # Upload as new loss set
         combined_loss_set = LossSet(

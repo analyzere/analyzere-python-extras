@@ -6,6 +6,7 @@ import certifi
 import csv
 import warnings
 
+from http.client import IncompleteRead
 from uuid import UUID
 from analyzere import (
     Portfolio,
@@ -265,17 +266,28 @@ class ELTCombiner():
         elt_url = '{}/uploads/files/{}'.format(analyzere.base_url,
                                                loss_set_filename)
 
-        elt_response = self._urllib_request.urlopen(elt_url)
+        elt_response_str = None
+        max_attempts = 3
+        for _ in range(0, max_attempts):
+            try:
+                elt_response_str = self._urllib_request.urlopen(
+                    elt_url).read().decode('utf-8').splitlines()
+            except IncompleteRead:
+                continue
 
-        self._downloaded_elts[loss_set_id] = elt_response
+        if elt_response_str == None:
+            msg = '{} IncompleteRead errors received for LossSet {}'.format(
+                max_attempts, loss_set_id)
+            raise RuntimeError(msg)
+
+        self._downloaded_elts[loss_set_id] = elt_response_str
 
     def _upload_combined_elt(self):
         # Append loss sets
         combined_elt_data = ["EventId,Loss,STDDEVI,STDDEVC,EXPVALUE"]
 
-        for elt_id, elt_response in self._downloaded_elts.items():
-            reader = csv.DictReader(elt_response.read().decode(
-                'utf-8').splitlines())
+        for elt_id, elt_response_csv in self._downloaded_elts.items():
+            reader = csv.DictReader(elt_response_csv)
 
             event_column = 'EventId'
             if 'EventId' not in reader.fieldnames:

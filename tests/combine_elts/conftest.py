@@ -1119,3 +1119,106 @@ def non_elt_loss_set(loss_set):
     non_elt_loss_set[1].type = 'YELTLossSet'
 
     return non_elt_loss_set
+
+
+@pytest.fixture(scope='session')
+def elt_response_1():
+    id = 'c054b33f-45df-4007-94f1-13d24935524d'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss')
+    elt_str_list.append('1000,10.5')
+    elt_str_list.append('1001,400.0')
+    elt_str_list.append('1003,200.0')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_2():
+    id = '11ace104-d814-4238-99ba-0a1a2faa4f2d'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss')
+    elt_str_list.append('2100,20.25')
+    elt_str_list.append('1000,600.0')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_3():
+    id = '756f989c-1250-4149-97c1-9b57e3aa36b8'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss')
+    elt_str_list.append('3000,10.5')
+    elt_str_list.append('1003,1200.0')
+    elt_str_list.append('3002,3000.1')
+    elt_str_list.append('2100,3150.0')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_additional_columns_1():
+    id = '97fcab1e-1afd-40ca-b439-5b0bab3cd576'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss,STDDEVI,STDDEVC,EXPVALUE')
+    elt_str_list.append('02,100.5,4,5.7,99')
+    elt_str_list.append('01,40.0,0.0,0,0.00')
+    elt_str_list.append('3000,23300.0,4,5,234')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_additional_columns_2():
+    id = 'c48bcda4-8ba5-4366-9c95-1904beb0d19e'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss,STDDEVI,STDDEVC,EXPVALUE')
+    elt_str_list.append('03,20.250,4,5.6,0.01')
+    elt_str_list.append('1000,600.00,0.01,0.04,0')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_additional_columns_3():
+    id = '5489f16a-dbcf-42e6-a5c6-3b0ea05b293a'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss,STDDEVI,STDDEVC,EXPVALUE')
+    elt_str_list.append('3000,105.5,0,0,0')
+    elt_str_list.append('1420,120.0,1,1,1')
+    elt_str_list.append('11420,30400.1,0.5,0.4,0.3')
+    elt_str_list.append('02,3150.0,0.9,8.0,22')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_EventId():
+    id = '0c7b46ac-3ae0-432e-931f-ae2c3f03481b'
+    elt_str_list = []
+    elt_str_list.append('EventId,Loss')
+    elt_str_list.append('99000,1000000')
+    elt_str_list.append('104000,2000000')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_EventID():
+    id = '90c03895-ea84-4df6-81b4-b6582976004b'
+    elt_str_list = []
+    elt_str_list.append('EventID,Loss')
+    elt_str_list.append('6454,4500.00')
+    elt_str_list.append('6201,560.8')
+
+    return [id, elt_str_list]
+
+
+@pytest.fixture(scope='session')
+def elt_response_dict(elt_response_EventId, elt_response_EventID):
+    elt_response_dict = {}
+    elt_response_dict['elt_response_EventId'] = elt_response_EventId
+    elt_response_dict['elt_response_EventID'] = elt_response_EventID
+
+    return elt_response_dict

@@ -2,11 +2,11 @@ from __future__ import print_function
 import analyzere
 import multiprocessing
 import ssl
-import certifi
 import csv
+import subprocess
 import warnings
 
-from http.client import IncompleteRead
+from six.moves.http_client import IncompleteRead
 from uuid import UUID
 from analyzere import (
     Portfolio,
@@ -36,7 +36,13 @@ class ELTCombiner():
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_verify_locations(certifi.where())
+
+        certifi_location = subprocess.Popen(
+            "python -m certifi",
+            shell=True,
+            stdout=subprocess.PIPE).communicate()[0].decode('utf-8').strip()
+
+        context.load_verify_locations(certifi_location)
         httpsHandler = urllib.request.HTTPSHandler(context=context)
 
         manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
@@ -80,7 +86,11 @@ class ELTCombiner():
         """
         self._elt_loss_sets = []
         self._description = description
+
         self._catalog = EventCatalog.retrieve(catalog_id)
+
+        # remove any empty strings (if someone had as extra comma)
+        uuid_list = [uuid for uuid in uuid_list if uuid is not '']
 
         if uuid_type == 'Layer':
             for uuid in uuid_list:
@@ -245,7 +255,7 @@ class ELTCombiner():
 
     def _combine_elts(self):
         """Downloads the ELTs in self._elt_loss_sets (a list of ELTLossSet ids)
-        and uploads a singe combined ELT.
+        and uploads a single combined ELT.
         """
         downloaded = 0
         with ThreadPoolExecutor(multiprocessing.cpu_count()) as executor:
@@ -266,28 +276,28 @@ class ELTCombiner():
         elt_url = '{}/uploads/files/{}'.format(analyzere.base_url,
                                                loss_set_filename)
 
-        elt_response_str = None
+        elt_response_str_list = None
         max_attempts = 3
         for _ in range(0, max_attempts):
             try:
-                elt_response_str = self._urllib_request.urlopen(
+                elt_response_str_list = self._urllib_request.urlopen(
                     elt_url).read().decode('utf-8').splitlines()
             except IncompleteRead:
                 continue
 
-        if elt_response_str == None:
+        if elt_response_str_list is None:
             msg = '{} IncompleteRead errors received for LossSet {}'.format(
                 max_attempts, loss_set_id)
             raise RuntimeError(msg)
 
-        self._downloaded_elts[loss_set_id] = elt_response_str
+        self._downloaded_elts[loss_set_id] = elt_response_str_list
 
     def _upload_combined_elt(self):
         # Append loss sets
         combined_elt_data = ["EventId,Loss,STDDEVI,STDDEVC,EXPVALUE"]
 
-        for elt_id, elt_response_csv in self._downloaded_elts.items():
-            reader = csv.DictReader(elt_response_csv)
+        for elt_id, elt_response_str_list in self._downloaded_elts.items():
+            reader = csv.DictReader(elt_response_str_list)
 
             event_column = 'EventId'
             if 'EventId' not in reader.fieldnames:

@@ -180,7 +180,7 @@ class TestProcessUUID:
 
         assert str(value_error.value) == \
             "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
-            "a Portfolio, Layer, LayerView, or LossSet."
+            "a Portfolio, PortfolioView, Layer, LayerView, or LossSet."
 
 
 class TestConnectionError:

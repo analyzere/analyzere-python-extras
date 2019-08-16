@@ -124,17 +124,21 @@ color_mode=['breadth'|'depth']
 Usage
 -----
 
-In order to make use of the visualization tools in the `analyzere_extras`
+In order to make use of the tools in the `analyzere_extras`
 module you will need to import the `analyzere` module.
 
-First you will need to define your connection information::
+You will need to define your connection information::
 
    import analyzere
    analyzere.base_url = '<your server url>'
    analyzere.username = '<your userid>'
    analyzere.password = '<your password>'
 
-Then you will need to query a LayerView that you would like to graph::
+Visualization
+~~~~~~~~~~~~~
+
+To make use of the visualization tool, you will need to query a LayerView
+that you would like to graph::
 
    from analyzere import LayerView
 
@@ -162,6 +166,47 @@ Shortcut: generate a graph for a given LayerView Id::
 
    graph = LayerViewDigraph.from_id('011785b1-203b-696e-424e-7da9b0ec779a')
 
+ELT Combination
+~~~~~~~~~~~~~~~
+
+To make use of the ELT combiner tool, you will need to define the list of
+uuids representing the resources with ELTs that you would like to combine::
+
+   uuid_list = ['26a8f73b-0fbb-46c7-8dcf-f4de1e222994', 'cd67ba03-302b-45e5-9341-a4267875c1f8']
+
+You will need to indicate which catalog these ELTs correspond to::
+
+  catalog_uuid = '61378251-ce85-4b6e-a63c-f5d67c4e4877'
+
+Then to combine the ELTs into a single ELT::
+
+  from analyzere_extras.combine_elts import ELTCombiner
+
+  elt_combiner = ELTCombiner()
+
+  combined_elt = elt_combiner.combine_elts_from_resources(
+    uuid_list,
+    catalog_uuid,
+    uuid_type='all',
+    description='My Combined ELT'
+  )
+
+``uuid_type`` specifies which the type of resources in ``uuid_list``. Valid
+values for ``uuid_type`` are:
+
+  - ``'Portfolio'``
+  - ``'PortfolioView'``
+  - ``'Layer'``
+  - ``'LayerView'``
+  - ``'LossSet'``
+  - ``'all'``
+
+If ``uuid_type='all'`` is set, then the resources in ``uuid_list`` can be a mix
+of Portfolios, PortfolioViews, Layers, LayerViews, and LossSets. The default
+value of ``uuid_type`` is ``'all'``.
+
+``description`` defines the description for the uploaded combined ELT. If not
+set, the default is ``'analyzere-python-extras: Combined ELT'``.
 
 Testing
 -------

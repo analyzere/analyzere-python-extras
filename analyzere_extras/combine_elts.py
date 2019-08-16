@@ -14,7 +14,8 @@ from analyzere import (
     Layer,
     LayerView,
     LossSet,
-    EventCatalog
+    EventCatalog,
+    InvalidRequestError,
 )
 
 from six.moves import urllib
@@ -92,46 +93,75 @@ class ELTCombiner():
         # remove any empty strings (if someone had as extra comma)
         uuid_list = [uuid for uuid in uuid_list if uuid is not '']
 
+        errors = []
+
         if uuid_type == 'Layer':
             for uuid in uuid_list:
-                self._process_layer_uuid(uuid)
+                try:
+                    self._process_layer_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
 
         elif uuid_type == 'LayerView':
             for uuid in uuid_list:
-                self._process_layer_view_uuid(uuid)
+                try:
+                    self._process_layer_view_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
 
         elif uuid_type == 'Portfolio':
             for uuid in uuid_list:
-                self._process_portfolio_uuid(uuid)
+                try:
+                    self._process_portfolio_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
 
         elif uuid_type == 'PortfolioView':
             for uuid in uuid_list:
-                self._process_portfolio_view_uuid(uuid)
+                try:
+                    self._process_portfolio_view_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
 
         elif uuid_type == 'LossSet':
             for uuid in uuid_list:
-                self._process_loss_set_uuid(uuid)
+                try:
+                    self._process_loss_set_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
 
         else:
             for uuid in uuid_list:
-                self._process_uuid(uuid)
+                try:
+                    self._process_uuid(uuid)
+                except ValueError as e:
+                    errors.append(e)
+
+        if len(errors) > 0:
+            raise ValueError('\n'.join([str(error) for error in errors]))
 
         return self._combine_elts()
+
+    def _validate_uuid(self, uuid):
+        try:
+            UUID(uuid, version=4)
+        except ValueError:
+            raise ValueError("'{}' is not a valid UUID.".format(uuid))
 
     def _process_layer_uuid(self, uuid):
         """Validates uuid as a Layer UUID, and adds ELTs for that UUID to
         self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         layer = None
 
         try:
-            layer = Layer.retrieve(valid_uuid)
-        except:
+            layer = Layer.retrieve(uuid)
+        except InvalidRequestError:
             raise ValueError(
-                "UUID '{}' is not a Layer.".format(valid_uuid))
+                "UUID '{}' is not a Layer.".format(uuid))
 
         self._add_layer_elts(layer)
 
@@ -140,15 +170,15 @@ class ELTCombiner():
         self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         layer_view = None
 
         try:
-            layer_view = LayerView.retrieve(valid_uuid)
-        except:
+            layer_view = LayerView.retrieve(uuid)
+        except InvalidRequestError:
             raise ValueError(
-                "UUID '{}' is not a LayerView.".format(valid_uuid))
+                "UUID '{}' is not a LayerView.".format(uuid))
 
         self._add_layer_view_elts(layer_view)
 
@@ -157,15 +187,15 @@ class ELTCombiner():
         self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         portfolio = None
 
         try:
-            portfolio = Portfolio.retrieve(valid_uuid)
-        except:
+            portfolio = Portfolio.retrieve(uuid)
+        except InvalidRequestError:
             raise ValueError(
-                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+                "UUID '{}' is not a Portfolio.".format(uuid))
 
         self._add_portfolio_elts(portfolio)
 
@@ -174,15 +204,15 @@ class ELTCombiner():
         self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         portfolio_view = None
 
         try:
-            portfolio_view = PortfolioView.retrieve(valid_uuid)
-        except:
+            portfolio_view = PortfolioView.retrieve(uuid)
+        except InvalidRequestError:
             raise ValueError(
-                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+                "UUID '{}' is not a PortfolioView.".format(uuid))
 
         self._add_portfolio_view_elts(portfolio_view)
 
@@ -191,15 +221,15 @@ class ELTCombiner():
         self._elt_loss_sets
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         loss_set = None
 
         try:
-            loss_set = LossSet.retrieve(valid_uuid)
-        except:
+            loss_set = LossSet.retrieve(uuid)
+        except InvalidRequestError:
             raise ValueError(
-                "UUID '{}' is not a Portfolio.".format(valid_uuid))
+                "UUID '{}' is not a LossSet.".format(uuid))
 
         self._add_loss_set_elts(loss_set)
 
@@ -210,7 +240,7 @@ class ELTCombiner():
         Accepts Portfolio, PortfolioView, Layer, LayerView, and LossSet UUIDs.
         """
         # Validate UUID - if invalid, let error bubble up
-        valid_uuid = UUID(uuid, version=4)
+        self._validate_uuid(uuid)
 
         portfolio = None
         portfolio_view = None
@@ -219,24 +249,24 @@ class ELTCombiner():
         loss_set = None
 
         try:
-            portfolio = Portfolio.retrieve(valid_uuid)
-        except:
+            portfolio = Portfolio.retrieve(uuid)
+        except InvalidRequestError:
             try:
-                layer = Layer.retrieve(valid_uuid)
-            except:
+                layer = Layer.retrieve(uuid)
+            except InvalidRequestError:
                 try:
-                    loss_set = LossSet.retrieve(valid_uuid)
-                except:
+                    loss_set = LossSet.retrieve(uuid)
+                except InvalidRequestError:
                     try:
-                        portfolio_view = PortfolioView.retrieve(valid_uuid)
-                    except:
+                        portfolio_view = PortfolioView.retrieve(uuid)
+                    except InvalidRequestError:
                         try:
-                            layer_view = LayerView.retrieve(valid_uuid)
-                        except:
+                            layer_view = LayerView.retrieve(uuid)
+                        except InvalidRequestError:
                             raise ValueError(
                                 "UUID '{}' is not a Portfolio, PortfolioView, "
                                 "Layer, LayerView, or LossSet.".format(
-                                    valid_uuid))
+                                    uuid))
 
         if portfolio is not None:
             self._add_portfolio_elts(portfolio)

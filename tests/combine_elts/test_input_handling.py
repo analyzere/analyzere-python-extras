@@ -1,7 +1,35 @@
 import pytest
 
 from analyzere_extras.combine_elts import ELTCombiner
+from analyzere import (
+    Portfolio,
+    PortfolioView,
+    Layer,
+    LayerView,
+    LossSet,
+    EventCatalog,
+    InvalidRequestError,
+)
 from requests import ConnectionError
+from mock import patch
+
+
+class AnalyzeReRetrieveAPI():
+    """Mocked Analyze Re API to control behaviour of API methods."""
+
+    invalid_request = False
+
+    @classmethod
+    def retrieve(self, uuid):
+        """Mocked '<Resource>.retrieve()' function."""
+        if AnalyzeReRetrieveAPI.invalid_request:
+            raise InvalidRequestError
+        else:
+            raise NotImplementedError
+
+    @classmethod
+    def event_catalog_retrieve(self, uuid):
+        return None
 
 
 class TestAddELTLossSets:
@@ -166,13 +194,73 @@ class TestProcessUUID:
 
     def test_invalid_uuid(self):
         elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
         with pytest.raises(ValueError) as value_error:
-            elt_combiner._process_uuid('invaliduuid')
+            elt_combiner._process_uuid(invalid_uuid)
 
-        assert str(value_error.value) == 'badly formed hexadecimal UUID string'
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
 
+    def test_invalid_portfolio_uuid(self):
+        elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_portfolio_uuid(invalid_uuid)
+
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
+
+    def test_invalid_portfolio_view_uuid(self):
+        elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_portfolio_view_uuid(invalid_uuid)
+
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
+
+    def test_invalid_layer_uuid(self):
+        elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_layer_uuid(invalid_uuid)
+
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
+
+    def test_invalid_layer_view_uuid(self):
+        elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_layer_view_uuid(invalid_uuid)
+
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
+
+    def test_invalid_loss_set_uuid(self):
+        elt_combiner = ELTCombiner()
+
+        invalid_uuid = 'invaliduuid'
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_loss_set_uuid(invalid_uuid)
+
+        assert str(value_error.value) == "'{}' is not a valid UUID.".format(
+            invalid_uuid)
+
+    @patch.object(Portfolio, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(PortfolioView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(Layer, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(LayerView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(LossSet, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
     def test_unknown_valid_uuid(self):
         unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
 
         elt_combiner = ELTCombiner()
         with pytest.raises(ValueError) as value_error:
@@ -181,6 +269,141 @@ class TestProcessUUID:
         assert str(value_error.value) == \
             "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
             "a Portfolio, PortfolioView, Layer, LayerView, or LossSet."
+
+    @patch.object(Portfolio, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    def test_unknown_valid_portfolio_uuid(self):
+        unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_portfolio_uuid(unknown_uuid)
+
+        assert str(value_error.value) == \
+            "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
+            "a Portfolio."
+
+    @patch.object(PortfolioView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    def test_unknown_valid_portfolio_view_uuid(self):
+        unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_portfolio_view_uuid(unknown_uuid)
+
+        assert str(value_error.value) == \
+            "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
+            "a PortfolioView."
+
+    @patch.object(Layer, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    def test_unknown_valid_layer_uuid(self):
+        unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_layer_uuid(unknown_uuid)
+
+        assert str(value_error.value) == \
+            "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
+            "a Layer."
+
+    @patch.object(LayerView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    def test_unknown_valid_layer_view_uuid(self):
+        unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_layer_view_uuid(unknown_uuid)
+
+        assert str(value_error.value) == \
+            "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
+            "a LayerView."
+
+    @patch.object(LossSet, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    def test_unknown_valid_loss_set_uuid(self):
+        unknown_uuid = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner._process_loss_set_uuid(unknown_uuid)
+
+        assert str(value_error.value) == \
+            "UUID '874f0b1f-b00d-49b3-ab78-c7a626e3addf' is not " \
+            "a LossSet."
+
+    @patch.object(Portfolio, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(PortfolioView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(Layer, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(LayerView, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(LossSet, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(
+        EventCatalog, 'retrieve', AnalyzeReRetrieveAPI.event_catalog_retrieve)
+    @pytest.mark.parametrize(
+        'resource_type',
+        ['Portfolio', 'PortfolioView', 'Layer', 'LayerView', 'LossSet', 'all'])
+    def test_multiple_valid_unknown_uuids(self, resource_type):
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        uuid_1 = 'd4678873-85fa-42f3-aae6-7f9cd541a66a'
+        uuid_2 = '874f0b1f-b00d-49b3-ab78-c7a626e3addf'
+        uuid_3 = '279c6c55-94fe-4738-8d34-f0cf4d92e759'
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner.combine_elts_from_resources(
+                [uuid_1, uuid_2, uuid_3],
+                'fake catalog',
+                uuid_type=resource_type
+            )
+
+        error_message_resource_str = resource_type
+        if error_message_resource_str == 'all':
+            error_message_resource_str = ('Portfolio, PortfolioView, Layer, '
+                                          'LayerView, or LossSet')
+
+        expected_message = "UUID '{}' is not a {}."
+        expected_messages = []
+        for uuid in [uuid_1, uuid_2, uuid_3]:
+            expected_messages.append(expected_message.format(
+                uuid, error_message_resource_str))
+
+        assert str(value_error.value) == '\n'.join(expected_messages)
+
+    @patch.object(LossSet, 'retrieve', AnalyzeReRetrieveAPI.retrieve)
+    @patch.object(
+        EventCatalog, 'retrieve', AnalyzeReRetrieveAPI.event_catalog_retrieve)
+    def test_multiple_invalid_uuids(self):
+
+        AnalyzeReRetrieveAPI.invalid_request = True
+
+        uuid_1 = 'invalid1'
+        uuid_2 = 'st1ll_n0t_v4l1d'
+        uuid_3 = 'wrong again'
+
+        elt_combiner = ELTCombiner()
+        with pytest.raises(ValueError) as value_error:
+            elt_combiner.combine_elts_from_resources(
+                [uuid_1, uuid_2, uuid_3],
+                'fake catalog',
+                uuid_type='LossSet'
+            )
+
+        expected_message = "'{}' is not a valid UUID."
+        expected_messages = []
+        for uuid in [uuid_1, uuid_2, uuid_3]:
+            expected_messages.append(expected_message.format(uuid))
+
+        assert str(value_error.value) == '\n'.join(expected_messages)
 
 
 class TestConnectionError:

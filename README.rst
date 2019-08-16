@@ -166,8 +166,8 @@ Shortcut: generate a graph for a given LayerView Id::
 Testing
 -------
 
-We currently commit to being compatible with Python 2.7 and Python 3.4. In
-order to run tests against against each environment we use
+We currently commit to being compatible with Python 2.7 and Python 3.4 to 3.7.
+In order to run tests against against each environment we use
 `tox <http://tox.readthedocs.org/>`_ and `py.test <http://pytest.org/>`_. You'll
 need an interpreter installed for each of the versions of Python we test.
 You can find these via your system's package manager or

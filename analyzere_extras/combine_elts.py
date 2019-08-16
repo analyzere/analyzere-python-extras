@@ -20,6 +20,7 @@ from analyzere import (
 
 from six.moves import urllib
 from concurrent.futures import ThreadPoolExecutor
+warnings.simplefilter('always', UserWarning)
 
 
 class ELTCombiner():

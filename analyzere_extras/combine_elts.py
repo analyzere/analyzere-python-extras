@@ -3,8 +3,8 @@ import analyzere
 import multiprocessing
 import ssl
 import csv
-import subprocess
 import warnings
+import certifi
 
 from six.moves.http_client import IncompleteRead
 from uuid import UUID
@@ -39,12 +39,7 @@ class ELTCombiner():
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = ssl.CERT_REQUIRED
 
-        certifi_location = subprocess.Popen(
-            "python -m certifi",
-            shell=True,
-            stdout=subprocess.PIPE).communicate()[0].decode('utf-8').strip()
-
-        context.load_verify_locations(certifi_location)
+        context.load_verify_locations(certifi.where())
         httpsHandler = urllib.request.HTTPSHandler(context=context)
 
         manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()

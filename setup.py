@@ -7,14 +7,25 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
+install_requires = []
+extras_require = {}
+
 with open(path.join(here, 'requirements', 'install.txt'),
           encoding='utf-8') as f:
-    install_requires = f.read().splitlines()
+
+    for line in f:
+        index_of_semicolon = line.find(';')
+        if index_of_semicolon == -1:
+            install_requires.append(line.strip())
+        else:
+            condition = ':' + line[index_of_semicolon + 1:].strip()
+            packages = [line[:index_of_semicolon].strip()]
+            extras_require[condition] = packages
 
 setup(
     name='analyzere_extras',
-    version='0.2.0',
-    description='Python extras to support visualization',
+    version='0.2.1',
+    description='Python extras to support the analyzere package',
     long_description=readme,
     url='https://github.com/analyzere/analyzere-python-extras',
     author='Analyze Re',
@@ -34,5 +45,6 @@ setup(
     packages=[
         'analyzere_extras',
     ],
-    install_requires=install_requires
+    install_requires=install_requires,
+    extras_require=extras_require
 )

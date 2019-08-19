@@ -3,4 +3,5 @@ requests>=2.3,<3
 six>=1.9,<2
 analyzere>=0.5.2,<1
 graphviz>=0.5.2,<1
+certifi>=2019.3.9<2020
 futures>=3.3.0<4; python_version == "2.7"

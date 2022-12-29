@@ -116,7 +116,8 @@ def _format_layer_terms(layer):
     formatter = FormattingHelper(layer)
 
     if hasattr(layer, 'inception_date') or hasattr(layer, 'expiry_date'):
-        formatter.append_term('coverage', _format_coverage(layer))
+        if layer.inception_date is not None and layer.expiry_date is not None: 
+            formatter.append_term('coverage', _format_coverage(layer))
 
     formatter.append('participation', display_name='share',
                      formatter=lambda x: '{}%'.format(x*100),

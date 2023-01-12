@@ -24,7 +24,7 @@ with open(path.join(here, 'requirements', 'install.txt'),
 
 setup(
     name='analyzere_tool_extra',
-    version='0.1.1',
+    version='0.1.2',
     description='Python extras to support the analyzere package',
     long_description=readme,
     url='https://github.com/analyzere/analyzere-python-extras',

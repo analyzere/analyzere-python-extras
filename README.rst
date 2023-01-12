@@ -18,7 +18,7 @@ Installation
 
 ::
 
-   pip install analyzere_extras
+   pip install analyzere-tool-extra
 
 
 Graphing Options
@@ -124,7 +124,7 @@ color_mode=['breadth'|'depth']
 Usage
 -----
 
-In order to make use of the tools in the `analyzere_extras`
+In order to make use of the tools in the `analyzere-tool-extra`
 module you will need to import the `analyzere` module.
 
 You will need to define your connection information::
@@ -146,7 +146,7 @@ that you would like to graph::
 
 Now you can generate a graph of your LayerView::
 
-   from analyzere_extras.visualizations import LayerViewDigraph
+   from analyzere-tool-extra.visualizations import LayerViewDigraph
 
    g = LayerViewDigraph(lv)  # defaults: with_terms=True, compact=True, rankdir='TB', warnings=True
    g = LayerViewDigraph(lv, with_terms=False)  # omit Layer terms from nodes
@@ -180,7 +180,7 @@ You will need to indicate which catalog these ELTs correspond to::
 
 Then to combine the ELTs into a single ELT::
 
-  from analyzere_extras.combine_elts import ELTCombiner
+  from analyzere-tool-extra.combine_elts import ELTCombiner
 
   elt_combiner = ELTCombiner()
 

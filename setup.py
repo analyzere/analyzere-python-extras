@@ -23,8 +23,8 @@ with open(path.join(here, 'requirements', 'install.txt'),
             extras_require[condition] = packages
 
 setup(
-    name='analyzere_extras',
-    version='0.2.1',
+    name='analyzere_tool_extra',
+    version='0.1.2',
     description='Python extras to support the analyzere package',
     long_description=readme,
     url='https://github.com/analyzere/analyzere-python-extras',
@@ -40,10 +40,12 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.8',
+
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     packages=[
-        'analyzere_extras',
+        'analyzere_tool_extra',
     ],
     install_requires=install_requires,
     extras_require=extras_require

@@ -18,7 +18,7 @@ Installation
 
 ::
 
-   pip install analyzere-tool-extra
+   pip install analyzerePythonTools
 
 
 Graphing Options
@@ -180,7 +180,7 @@ You will need to indicate which catalog these ELTs correspond to::
 
 Then to combine the ELTs into a single ELT::
 
-  from analyzere-tool-extra.combine_elts import ELTCombiner
+  from analyzerePythonTools.combine_elts import ELTCombiner
 
   elt_combiner = ELTCombiner()
 
@@ -206,7 +206,7 @@ of Portfolios, PortfolioViews, Layers, LayerViews, and LossSets. The default
 value of ``uuid_type`` is ``'all'``.
 
 ``description`` defines the description for the uploaded combined ELT. If not
-set, the default is ``'analyzere-python-extras: Combined ELT'``.
+set, the default is ``'analyzerePythonTools: Combined ELT'``.
 
 Testing
 -------

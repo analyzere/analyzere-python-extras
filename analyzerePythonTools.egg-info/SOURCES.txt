@@ -1,0 +1,15 @@
+AUTHORS
+LICENSE
+MANIFEST.in
+README.rst
+setup.cfg
+setup.py
+analyzerePythonTools/__init__.py
+analyzerePythonTools/combine_elts.py
+analyzerePythonTools/visualizations.py
+analyzerePythonTools.egg-info/PKG-INFO
+analyzerePythonTools.egg-info/SOURCES.txt
+analyzerePythonTools.egg-info/dependency_links.txt
+analyzerePythonTools.egg-info/requires.txt
+analyzerePythonTools.egg-info/top_level.txt
+requirements/install.txt

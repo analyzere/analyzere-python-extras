@@ -1,0 +1,9 @@
+lazy-object-proxy<2,>=1.0
+requests<3,>=2.3
+six<2,>=1.9
+analyzere<1,>=0.5.2
+graphviz<1,>=0.5.2
+certifi>=2019.3.9<2020
+
+[:python_version == "2.7"]
+futures>=3.3.0<4
